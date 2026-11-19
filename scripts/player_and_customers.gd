@@ -178,7 +178,7 @@ func _create_customer_counter() -> void:
 	layer.layer = 4
 	add_child(layer)
 	customer_label = Label.new()
-	customer_label.text = "Сейчас в городе: 0 / %d\\nВсего посетило: 0" % MAX_ACTIVE_CUSTOMERS
+	customer_label.text = "Сейчас в городе: 0 / %d\nВсего посетило: 0" % MAX_ACTIVE_CUSTOMERS
 	customer_label.position = Vector2(18, 104)
 	customer_label.add_theme_font_size_override("font_size", 19)
 	layer.add_child(customer_label)
@@ -196,7 +196,7 @@ func _spawn_customer() -> void:
 	customer_count += 1
 	active_customers += 1
 	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+		customer_label.text = "Сейчас в городе: %d / %d\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
 	var customer := Node3D.new()
 	customer.name = "Customer_%d" % customer_count
 	customer.position = Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
@@ -242,7 +242,7 @@ func _walk_customer(customer: Node3D, path: Array) -> void:
 func _customer_left(customer: Node3D) -> void:
 	active_customers = maxi(0, active_customers - 1)
 	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+		customer_label.text = "Сейчас в городе: %d / %d\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
 	if is_instance_valid(customer):
 		customer.queue_free()
 
