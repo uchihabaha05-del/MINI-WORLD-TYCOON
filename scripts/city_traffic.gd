@@ -56,7 +56,7 @@ func _make_vehicle(index: int) -> Node3D:
 		Color("#d94f45"), Color("#e3c34f"), Color("#4e8dbb"),
 		Color("#e6e8e8"), Color("#4d5964"), Color("#4d9b72")
 	]
-	_box(vehicle, Vector3(3.2, 0.85, 1.55), Vector3(0, 0.72, 0), colors[index], "VehicleBody")
+	_box(vehicle, Vector3(3.2, 0.85, 1.55), Vector3(0, 0.72, 0), colors[index % colors.size()], "VehicleBody")
 	_box(vehicle, Vector3(1.65, 0.72, 1.35), Vector3(-0.15, 1.42, 0), Color("#9dc4d3"), "VehicleCabin")
 	for x in [-1.0, 1.0]:
 		for z in [-0.83, 0.83]:
