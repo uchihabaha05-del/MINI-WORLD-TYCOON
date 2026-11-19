@@ -22,6 +22,8 @@ var selected_plot: int = -1
 var cash_label: Label
 var status_label: Label
 var business_summary_label: Label
+var mission_label: Label
+var tutorial_step: int = 0
 var plot_title: Label
 var plot_info: Label
 var buy_button: Button
@@ -133,6 +135,11 @@ func _create_interface() -> void:
 	business_summary_label = Label.new()
 	business_summary_label.add_theme_font_size_override("font_size", 14)
 	top_box.add_child(business_summary_label)
+	mission_label = Label.new()
+	mission_label.custom_minimum_size = Vector2(285, 48)
+	mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mission_label.add_theme_font_size_override("font_size", 15)
+	top_box.add_child(mission_label)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.0
@@ -155,7 +162,7 @@ func _create_interface() -> void:
 	content.add_child(plot_info)
 
 	buy_button = Button.new()
-	buy_button.text = "Купить участок — 300"
+	buy_button.text = "Купить землю — 300 монет"
 	buy_button.pressed.connect(_buy_selected_plot)
 	content.add_child(buy_button)
 
@@ -210,6 +217,8 @@ func _on_plot_input_event(_camera: Camera3D, event: InputEvent, _position: Vecto
 
 func _select_plot(plot_id: int) -> void:
 	selected_plot = plot_id
+	if tutorial_step == 0:
+		tutorial_step = 1
 	_refresh_all_plots()
 	_refresh_ui()
 
@@ -222,6 +231,8 @@ func _buy_selected_plot() -> void:
 	cash -= PLOT_COST
 	plot["owned"] = true
 	plots[selected_plot] = plot
+	if tutorial_step < 2:
+		tutorial_step = 2
 	_save_game()
 	_refresh_all_plots()
 	_refresh_ui()
@@ -242,6 +253,8 @@ func _build_selected_plot(building_type: String) -> void:
 	plot["building"] = building_type
 	plot["level"] = 1
 	plots[selected_plot] = plot
+	if tutorial_step < 3:
+		tutorial_step = 3
 	_spawn_building(selected_plot)
 	_save_game()
 	_refresh_all_plots()
@@ -294,6 +307,9 @@ func _collect_income() -> void:
 	else:
 		cash += earned
 		status_label.text = "Доход +%d • не хватает на зарплаты: %d" % [earned, payroll]
+	if tutorial_step == 3:
+		tutorial_step = 4
+		status_label.text = "Ура! Ты заработал первые монетки! 🎉"
 	_save_game()
 	_refresh_ui()
 
@@ -359,7 +375,7 @@ func _refresh_all_plots() -> void:
 		pad.material_override = _make_material(color)
 
 func _refresh_ui() -> void:
-	cash_label.text = "💰  %d монет" % cash
+	cash_label.text = "💰  Мои монетки: %d" % cash
 	var business_count := 0
 	var business_income := 20
 	for business_plot in plots:
@@ -367,12 +383,13 @@ func _refresh_ui() -> void:
 		if not business_type.is_empty() and BUILDINGS.has(business_type):
 			business_count += 1
 			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
-	business_summary_label.text = "Предприятий: %d  •  Доход: %d / 10 сек.  •  Участки: %d" % [business_count, business_income, plots.size()]
+	business_summary_label.text = "Зданий: %d  •  Заработок: %d монет / 10 сек." % [business_count, business_income]
+	_update_mission()
 	if status_label.text.is_empty():
-		status_label.text = "Ваш MINI MARKET приносит 20 за цикл"
+		status_label.text = "Твой магазин приносит монетки!"
 	if not _has_selection():
-		plot_title.text = "Выберите участок"
-		plot_info.text = "Нажмите на свободную зелёную площадку на карте."
+		plot_title.text = "Выбери место для своего здания"
+		plot_info.text = "Найди зелёную площадку и нажми на неё."
 		buy_button.visible = false
 		store_button.visible = false
 		cafe_button.visible = false
@@ -419,17 +436,31 @@ func _refresh_ui() -> void:
 	marketing_button.text = "Реклама +10 привлекательности — %d" % marketing_cost
 	marketing_button.disabled = cash < marketing_cost or appeal >= 100
 	if not owned:
-		plot_info.text = "Свободная земля. Цена покупки: %d монет." % PLOT_COST
+		plot_info.text = "Это свободное место. Купи его, чтобы построить своё здание. Цена: %d монет." % PLOT_COST
 	elif building_type.is_empty():
-		plot_info.text = "Участок ваш. Выберите здание для строительства."
+		plot_info.text = "Земля теперь твоя! Выбери, что построить. Магазин — самый простой старт."
 	else:
 		var definition: Dictionary = BUILDINGS[building_type]
 		var level := int(plot["level"])
-		plot_info.text = "%s • уровень %d\nДоход: %d монет за цикл. Улучшение: %d." % [
+		plot_info.text = "Ты построил: %s!\nУровень: %d • Заработок: %d монет за 10 секунд. Улучшение: %d." % [
 			building_type, level, int(definition["income"]) * level, 500 * level
 		]
 	upgrade_button.text = "Улучшить — %d монет" % (500 * int(plot["level"]))
 	upgrade_button.disabled = cash < 500 * int(plot["level"])
+
+
+func _update_mission() -> void:
+	match tutorial_step:
+		0:
+			mission_label.text = "🎯 ТВОЯ ЦЕЛЬ\n1. Найди зелёную землю и нажми на неё."
+		1:
+			mission_label.text = "👍 Отлично!\n2. Купи выбранную землю за 300 монет."
+		2:
+			mission_label.text = "🏗️ Теперь строй!\n3. Нажми «Магазин» — он стоит 450 монет."
+		3:
+			mission_label.text = "⭐ Всё готово!\nПодожди немного — здание принесёт тебе монетки."
+		_:
+			mission_label.text = "🏆 Молодец! Первый бизнес готов!\nСтрой новые здания и развивай свой город."
 
 func _hire_plot_worker() -> void:
 	if not _has_selection():
@@ -491,6 +522,7 @@ func _make_material(color: Color) -> StandardMaterial3D:
 func _save_game() -> void:
 	var config := ConfigFile.new()
 	config.set_value("economy", "cash", cash)
+	config.set_value("tutorial", "step", tutorial_step)
 	for i in range(plots.size()):
 		var plot: Dictionary = plots[i]
 		config.set_value("plots", "owned_%d" % i, bool(plot["owned"]))
@@ -505,6 +537,12 @@ func _load_game() -> void:
 	if config.load("user://tycoon_save.cfg") != OK:
 		return
 	cash = int(config.get_value("economy", "cash", STARTING_CASH))
+	tutorial_step = clampi(int(config.get_value("tutorial", "step", 0)), 0, 4)
+	if tutorial_step == 0:
+		for saved_plot in plots:
+			if not String(saved_plot.get("building", "")).is_empty():
+				tutorial_step = 4
+				break
 	for i in range(plots.size()):
 		var plot: Dictionary = plots[i]
 		plot["owned"] = bool(config.get_value("plots", "owned_%d" % i, false))
