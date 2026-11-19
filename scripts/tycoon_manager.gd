@@ -27,6 +27,8 @@ var tutorial_step: int = 0
 var stars: int = 0
 var quest_done: Array = [false, false, false, false, false]
 var quest_label: Label
+var level_label: Label
+var city_level: int = 1
 var plot_title: Label
 var plot_info: Label
 var buy_button: Button
@@ -148,6 +150,9 @@ func _create_interface() -> void:
 	quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	quest_label.add_theme_font_size_override("font_size", 14)
 	top_box.add_child(quest_label)
+	level_label = Label.new()
+	level_label.add_theme_font_size_override("font_size", 14)
+	top_box.add_child(level_label)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.0
@@ -395,6 +400,7 @@ func _refresh_ui() -> void:
 			business_count += 1
 			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
 	business_summary_label.text = "Зданий: %d  •  Заработок: %d монет / 10 сек." % [business_count, business_income]
+	_update_city_progress(business_count)
 	_update_mission()
 	_update_quest_text()
 	if status_label.text.is_empty():
@@ -427,10 +433,14 @@ func _refresh_ui() -> void:
 	restaurant_button.visible = owned and building_type.is_empty()
 	workshop_button.visible = owned and building_type.is_empty()
 	store_button.disabled = cash < int(BUILDINGS["Магазин"]["cost"])
-	cafe_button.disabled = cash < int(BUILDINGS["Кафе"]["cost"])
-	apartments_button.disabled = cash < int(BUILDINGS["Апартаменты"]["cost"])
-	restaurant_button.disabled = cash < int(BUILDINGS["Ресторан"]["cost"])
-	workshop_button.disabled = cash < int(BUILDINGS["Мастерская"]["cost"])
+	cafe_button.disabled = cash < int(BUILDINGS["Кафе"]["cost"]) or _count_buildings() < 1
+	apartments_button.disabled = cash < int(BUILDINGS["Апартаменты"]["cost"]) or _count_buildings() < 2
+	restaurant_button.disabled = cash < int(BUILDINGS["Ресторан"]["cost"]) or _count_buildings() < 4
+	workshop_button.disabled = cash < int(BUILDINGS["Мастерская"]["cost"]) or _count_buildings() < 3
+	cafe_button.text = "Кафе · 650" if _count_buildings() >= 1 else "Кафе 🔒 (1 здание)"
+	apartments_button.text = "Дом · 900" if _count_buildings() >= 2 else "Дом 🔒 (2 здания)"
+	workshop_button.text = "Мастерская · 800" if _count_buildings() >= 3 else "Мастерская 🔒 (3 здания)"
+	restaurant_button.text = "Ресторан · 1100" if _count_buildings() >= 4 else "Ресторан 🔒 (4 здания)"
 	upgrade_button.visible = owned and not building_type.is_empty()
 	var has_business := owned and not building_type.is_empty() and building_type != "Апартаменты"
 	var worker_count := int(plot.get("workers", 0))
@@ -513,6 +523,42 @@ func _update_quest_text() -> void:
 	else:
 		quest_label.text = "🎮 ЗАДАНИЕ: %s\nНаграда: ⭐ + 1  •  Звёзды: %d" % [names[next_quest], stars]
 
+
+func _count_buildings() -> int:
+	var total := 0
+	for plot in plots:
+		if not String(plot.get("building", "")).is_empty():
+			total += 1
+	return total
+
+func _update_city_progress(building_count: int) -> void:
+	var target_level := 1
+	if building_count >= 1:
+		target_level = 2
+	if building_count >= 3:
+		target_level = 3
+	if building_count >= 5:
+		target_level = 4
+	if building_count >= 8:
+		target_level = 5
+	if building_count >= 12:
+		target_level = 6
+	if target_level > city_level:
+		var rewards: Array[int] = [0, 250, 500, 750, 1200, 2000]
+		var reward := rewards[mini(target_level - 1, rewards.size() - 1)]
+		cash += reward
+		city_level = target_level
+		status_label.text = "🎉 Новый уровень города %d! Награда: +%d монет!" % [city_level, reward]
+		_save_game()
+	level_label.text = "🏙 Уровень города: %d / 6  •  До следующего: %d зданий" % [city_level, _next_level_building_goal(building_count)]
+
+func _next_level_building_goal(current_count: int) -> int:
+	var goals: Array[int] = [1, 3, 5, 8, 12]
+	for goal in goals:
+		if current_count < goal:
+			return goal
+	return 12
+
 func _update_mission() -> void:
 	match tutorial_step:
 		0:
@@ -589,6 +635,7 @@ func _save_game() -> void:
 	config.set_value("economy", "cash", cash)
 	config.set_value("tutorial", "step", tutorial_step)
 	config.set_value("rewards", "stars", stars)
+	config.set_value("progress", "city_level", city_level)
 	for quest_index in range(quest_done.size()):
 		config.set_value("rewards", "quest_%d" % quest_index, bool(quest_done[quest_index]))
 	for i in range(plots.size()):
@@ -607,6 +654,7 @@ func _load_game() -> void:
 	cash = int(config.get_value("economy", "cash", STARTING_CASH))
 	tutorial_step = clampi(int(config.get_value("tutorial", "step", 0)), 0, 4)
 	stars = maxi(0, int(config.get_value("rewards", "stars", 0)))
+	city_level = clampi(int(config.get_value("progress", "city_level", 1)), 1, 6)
 	for quest_index in range(quest_done.size()):
 		quest_done[quest_index] = bool(config.get_value("rewards", "quest_%d" % quest_index, false))
 	for i in range(plots.size()):
