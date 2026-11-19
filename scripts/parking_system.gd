@@ -1,9 +1,9 @@
 extends Node3D
 
 # MINI WORLD TYCOON — Milestone 14: parking lots and occupancy.
-const SLOT_COUNT := 8
+const SLOT_COUNT := 16
 const UPDATE_INTERVAL := 14.0
-const MAX_OCCUPIED := 6
+const MAX_OCCUPIED := 12
 
 var occupied: Array[bool] = []
 var parked_cars: Dictionary = {}
@@ -17,7 +17,9 @@ var slot_positions: Array[Vector3] = [
 	Vector3(-21, 0, -36), Vector3(-11, 0, -36),
 	Vector3(11, 0, -36), Vector3(21, 0, -36),
 	Vector3(-21, 0, 36), Vector3(-11, 0, 36),
-	Vector3(11, 0, 36), Vector3(21, 0, 36)
+	Vector3(11, 0, 36), Vector3(21, 0, 36),
+	Vector3(-82, 0, -55), Vector3(-72, 0, -55), Vector3(72, 0, -55), Vector3(82, 0, -55),
+	Vector3(-82, 0, 55), Vector3(-72, 0, 55), Vector3(72, 0, 55), Vector3(82, 0, 55)
 ]
 
 func _ready() -> void:
