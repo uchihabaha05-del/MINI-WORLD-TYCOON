@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Milestone 25 — mobile HUD layout and lighting pass**
+- Repositioned city population, traffic, bus, parking, utility and rival-business information into separate screen areas to reduce overlap with the main wallet/quest HUD and touch controls.
+- Moved utility controls into the center column and rival statistics to a lower center position.
+- Reduced ambient and directional light energy to make the city less washed out on mobile screens.
+- Gameplay systems and save data remain unchanged.
+
+
+## Current milestone
+
 **Milestone 24 — simple quests, stars and rewards**
 - Added five clear goals: buy land, build a first building, upgrade a building, hire a worker and build three buildings.
 - Completing each goal grants one star and a coin reward; the next unfinished goal is shown in the HUD.
