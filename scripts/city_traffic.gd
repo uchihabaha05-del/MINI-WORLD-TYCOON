@@ -19,7 +19,7 @@ func _create_hud() -> void:
 	add_child(layer)
 	traffic_label = Label.new()
 	traffic_label.text = "Транспорт на дорогах: %d" % TRAFFIC_COUNT
-	traffic_label.position = Vector2(18, 220)
+	traffic_label.position = Vector2(650, 268)
 	traffic_label.add_theme_font_size_override("font_size", 17)
 	layer.add_child(traffic_label)
 
