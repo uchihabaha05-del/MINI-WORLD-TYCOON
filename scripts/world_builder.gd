@@ -104,7 +104,7 @@ func _build_shop() -> void:
 	_box(shop, Vector3(2.2, 4.0, 0.22), Vector3(0, 2.7, 6.18), Color("#79b7c9"), "EntranceDoor")
 
 	var building_sign := Label3D.new()
-	building_building_sign.name = "ShopSign"
+	building_sign.name = "ShopSign"
 	building_sign.text = "MINI MARKET"
 	building_sign.font_size = 64
 	building_sign.pixel_size = 0.012
