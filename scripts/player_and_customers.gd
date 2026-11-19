@@ -3,6 +3,7 @@ extends Node3D
 # MINI WORLD TYCOON — Milestone 5: player movement and first customers.
 const PLAYER_SPEED := 6.0
 const CUSTOMER_INTERVAL := 9.0
+const MAX_ACTIVE_CUSTOMERS := 6
 const SHOP_ENTRANCE := Vector3(-15.0, 0.0, -8.2)
 
 var player: CharacterBody3D
@@ -11,6 +12,7 @@ var move_vector := Vector2.ZERO
 var held_directions := {"left": false, "right": false, "up": false, "down": false}
 var customer_timer: Timer
 var customer_count := 0
+var active_customers := 0
 var customer_label: Label
 var joystick_hint: Label
 var store_system: Node
@@ -176,7 +178,7 @@ func _create_customer_counter() -> void:
 	layer.layer = 4
 	add_child(layer)
 	customer_label = Label.new()
-	customer_label.text = "Посетители: 0"
+	customer_label.text = "Сейчас в городе: 0 / %d\\nВсего посетило: 0" % MAX_ACTIVE_CUSTOMERS
 	customer_label.position = Vector2(18, 104)
 	customer_label.add_theme_font_size_override("font_size", 19)
 	layer.add_child(customer_label)
@@ -189,9 +191,12 @@ func _start_customer_timer() -> void:
 	add_child(customer_timer)
 
 func _spawn_customer() -> void:
+	if active_customers >= MAX_ACTIVE_CUSTOMERS:
+		return
 	customer_count += 1
+	active_customers += 1
 	if customer_label:
-		customer_label.text = "Посетители: %d" % customer_count
+		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
 	var customer := Node3D.new()
 	customer.name = "Customer_%d" % customer_count
 	customer.position = Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
@@ -232,7 +237,14 @@ func _walk_customer(customer: Node3D, path: Array) -> void:
 	tween.tween_callback(_serve_customer)
 	tween.tween_interval(2.0)
 	tween.tween_property(customer, "global_position", Vector3(-15.0, 0.0, 2.0), 3.0)
-	tween.tween_callback(customer.queue_free)
+	tween.tween_callback(_customer_left.bind(customer))
+
+func _customer_left(customer: Node3D) -> void:
+	active_customers = maxi(0, active_customers - 1)
+	if customer_label:
+		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+	if is_instance_valid(customer):
+		customer.queue_free()
 
 func _serve_customer() -> void:
 	if store_system and store_system.has_method("serve_customer"):
