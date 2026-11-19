@@ -2,6 +2,12 @@
 
 ## Current milestone
 
+**Visual Restart — Phase 2: walk-in supermarket interior**
+- Replaced the solid shop block with a traversable interior: floor, rear/side walls, open central entrance and collision on walls only.
+- Removed the opaque full roof and added a roof rim so the interior remains visible from the elevated mobile camera.
+- Added a branded rear wall, checkout counter, terminal/scanner, refrigerators, interior shelves and ceiling fixtures.
+- Preserved the existing product stock, shelf logic, sales, staff and supplier systems.
+
 **Visual Restart — Phase 1: city presentation overhaul**
 - Reworked building facades with vertical architectural piers, cornices, street-level shopfronts, canopies and rooftop HVAC details.
 - Added a paved MINI MARKET plaza with planters, shrubs, benches and a clear pedestrian approach.
