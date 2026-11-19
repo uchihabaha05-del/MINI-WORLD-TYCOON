@@ -1,7 +1,13 @@
 extends Node3D
 
-# MINI WORLD TYCOON — Milestone 5: player movement and first customers.
+# MINI WORLD TYCOON — Milestone 30: responsive character controller and mobile gameplay controls.
 const PLAYER_SPEED := 6.0
+const SPRINT_SPEED := 9.2
+const JUMP_VELOCITY := 6.2
+const GRAVITY := 18.0
+const STAMINA_MAX := 100.0
+const STAMINA_DRAIN := 26.0
+const STAMINA_REGEN := 18.0
 const CUSTOMER_INTERVAL := 9.0
 const MAX_ACTIVE_CUSTOMERS := 6
 const SHOP_ENTRANCE := Vector3(-15.0, 0.0, -8.2)
@@ -9,6 +15,12 @@ const SHOP_ENTRANCE := Vector3(-15.0, 0.0, -8.2)
 var player: CharacterBody3D
 var camera_rig: Camera3D
 var move_vector := Vector2.ZERO
+var sprint_held := false
+var stamina := STAMINA_MAX
+var stamina_bar: ProgressBar
+var movement_status: Label
+var player_body_mesh: MeshInstance3D
+var animation_clock := 0.0
 var held_directions := {"left": false, "right": false, "up": false, "down": false}
 var customer_timer: Timer
 var customer_count := 0
@@ -41,17 +53,35 @@ func _physics_process(delta: float) -> void:
 	if keyboard.length() > 0.05:
 		direction = keyboard
 	direction = direction.limit_length(1.0)
-	player.velocity.x = direction.x * PLAYER_SPEED
-	player.velocity.z = direction.y * PLAYER_SPEED
-	player.velocity.y = 0.0
+	var wants_sprint := (sprint_held or Input.is_key_pressed(KEY_SHIFT)) and direction.length() > 0.1 and stamina > 0.5
+	var current_speed := SPRINT_SPEED if wants_sprint else PLAYER_SPEED
+	if wants_sprint:
+		stamina = maxf(0.0, stamina - STAMINA_DRAIN * delta)
+	else:
+		stamina = minf(STAMINA_MAX, stamina + STAMINA_REGEN * delta)
+	player.velocity.x = move_toward(player.velocity.x, direction.x * current_speed, 24.0 * delta)
+	player.velocity.z = move_toward(player.velocity.z, direction.y * current_speed, 24.0 * delta)
+	if not player.is_on_floor():
+		player.velocity.y -= GRAVITY * delta
+	elif player.velocity.y < 0.0:
+		player.velocity.y = 0.0
+	if Input.is_key_pressed(KEY_SPACE) and player.is_on_floor():
+		player.velocity.y = JUMP_VELOCITY
 	player.move_and_slide()
 	player.global_position.x = clampf(player.global_position.x, -104.0, 104.0)
 	player.global_position.z = clampf(player.global_position.z, -104.0, 104.0)
 	if direction.length() > 0.08:
-		player.rotation.y = atan2(direction.x, direction.y)
+		player.rotation.y = lerp_angle(player.rotation.y, atan2(direction.x, direction.y), minf(delta * 12.0, 1.0))
+	animation_clock += delta * (12.0 if direction.length() > 0.1 and wants_sprint else 8.0)
+	if player_body_mesh != null:
+		player_body_mesh.position.y = 0.9 + (sin(animation_clock) * 0.045 if direction.length() > 0.1 and player.is_on_floor() else 0.0)
+	if stamina_bar != null:
+		stamina_bar.value = stamina
+	if movement_status != null:
+		movement_status.text = "БЕГ" if wants_sprint else ("ПРЫЖОК" if not player.is_on_floor() else "ХОДЬБА")
 	if camera_rig:
-		var target := player.global_position + Vector3(0, 28, 34)
-		camera_rig.global_position = camera_rig.global_position.lerp(target, minf(delta * 2.5, 1.0))
+		var target := player.global_position + Vector3(0, 25, 31)
+		camera_rig.global_position = camera_rig.global_position.lerp(target, minf(delta * 4.0, 1.0))
 		camera_rig.look_at(player.global_position + Vector3(0, 1.0, 0), Vector3.UP)
 
 func _create_player() -> void:
@@ -59,8 +89,9 @@ func _create_player() -> void:
 	player.name = "PlayerCharacter"
 	player.position = Vector3(-15, 0.15, -4.0)
 	player.collision_layer = 2
-	player.collision_mask = 0
+	player.collision_mask = 1
 	add_child(player)
+	_create_ground_collision()
 
 	var body_collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
@@ -78,6 +109,7 @@ func _create_player() -> void:
 	body.mesh = body_mesh
 	body.position.y = 0.9
 	body.material_override = _material(Color("#347db7"))
+	player_body_mesh = body
 	player.add_child(body)
 
 	var head := MeshInstance3D.new()
@@ -131,6 +163,40 @@ func _create_controls() -> void:
 	_add_direction_button(pad, "▼", "down")
 	_add_empty_cell(pad)
 
+	_add_action_button(layer, "БЕГ", Vector2(24, -150), true)
+	_add_action_button(layer, "ПРЫЖОК", Vector2(24, -88), false)
+	stamina_bar = ProgressBar.new()
+	stamina_bar.min_value = 0
+	stamina_bar.max_value = STAMINA_MAX
+	stamina_bar.value = STAMINA_MAX
+	stamina_bar.show_percentage = false
+	stamina_bar.anchor_left = 0.0
+	stamina_bar.anchor_top = 1.0
+	stamina_bar.anchor_right = 0.0
+	stamina_bar.anchor_bottom = 1.0
+	stamina_bar.offset_left = 24
+	stamina_bar.offset_top = -48
+	stamina_bar.offset_right = 190
+	stamina_bar.offset_bottom = -34
+	layer.add_child(stamina_bar)
+	movement_status = Label.new()
+	movement_status.position = Vector2(24, 150)
+	movement_status.text = "ХОДЬБА"
+	movement_status.add_theme_font_size_override("font_size", 15)
+	layer.add_child(movement_status)
+	var zoom_in := Button.new()
+	zoom_in.text = "＋"
+	zoom_in.position = Vector2(24, 190)
+	zoom_in.custom_minimum_size = Vector2(48, 44)
+	zoom_in.pressed.connect(_change_camera_zoom.bind(-4.0))
+	layer.add_child(zoom_in)
+	var zoom_out := Button.new()
+	zoom_out.text = "－"
+	zoom_out.position = Vector2(78, 190)
+	zoom_out.custom_minimum_size = Vector2(48, 44)
+	zoom_out.pressed.connect(_change_camera_zoom.bind(4.0))
+	layer.add_child(zoom_out)
+
 	joystick_hint = Label.new()
 	joystick_hint.text = "УПРАВЛЕНИЕ"
 	joystick_hint.anchor_left = 1.0
@@ -143,6 +209,47 @@ func _create_controls() -> void:
 	joystick_hint.offset_bottom = -178
 	joystick_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layer.add_child(joystick_hint)
+
+func _create_ground_collision() -> void:
+	var ground := StaticBody3D.new()
+	ground.name = "WalkableCityGround"
+	ground.collision_layer = 1
+	ground.collision_mask = 0
+	var shape_node := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(220.0, 0.5, 220.0)
+	shape_node.shape = shape
+	shape_node.position.y = -0.28
+	ground.add_child(shape_node)
+	add_child(ground)
+
+func _add_action_button(layer: CanvasLayer, caption: String, offset: Vector2, hold: bool) -> void:
+	var button := Button.new()
+	button.text = caption
+	button.anchor_left = 0.0
+	button.anchor_top = 1.0
+	button.anchor_right = 0.0
+	button.anchor_bottom = 1.0
+	button.offset_left = offset.x
+	button.offset_top = offset.y
+	button.offset_right = offset.x + 112.0
+	button.offset_bottom = offset.y + 52.0
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 17)
+	if hold:
+		button.button_down.connect(func(): sprint_held = true)
+		button.button_up.connect(func(): sprint_held = false)
+	else:
+		button.pressed.connect(_jump)
+	layer.add_child(button)
+
+func _jump() -> void:
+	if player != null and player.is_on_floor():
+		player.velocity.y = JUMP_VELOCITY
+
+func _change_camera_zoom(amount: float) -> void:
+	if camera_rig != null:
+		camera_rig.fov = clampf(camera_rig.fov + amount, 42.0, 78.0)
 
 func _add_empty_cell(parent: GridContainer) -> void:
 	var spacer := Control.new()
