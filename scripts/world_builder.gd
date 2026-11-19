@@ -128,13 +128,13 @@ func _build_park() -> void:
 	add_child(park)
 
 	_box(park, Vector3(28, 0.12, 19), Vector3.ZERO, Color("#86bd70"), "ParkGrass")
-	_box(park, Vector3(24, 0.08, 2.2), SIDEWALK, Vector3(0, 0.1, 0), "ParkPath")
-	_box(park, Vector3(2.2, 0.08, 15), SIDEWALK, Vector3(0, 0.11, 0), "ParkPath")
+	_box(park, Vector3(24, 0.08, 2.2), Vector3(0, 0.1, 0), SIDEWALK, "ParkPath")
+	_box(park, Vector3(2.2, 0.08, 15), Vector3(0, 0.11, 0), SIDEWALK, "ParkPath")
 	for x in [-10.0, -4.0, 4.0, 10.0]:
 		_tree(park, Vector3(x, 0, -6))
 		_tree(park, Vector3(x, 0, 6))
-	_box(park, Vector3(2.0, 0.55, 0.65), Color("#a8794f"), Vector3(-5, 0.35, 0), "ParkBench")
-	_box(park, Vector3(2.0, 0.55, 0.65), Color("#a8794f"), Vector3(6, 0.35, 0), "ParkBench")
+	_box(park, Vector3(2.0, 0.55, 0.65), Vector3(-5, 0.35, 0), Color("#a8794f"), "ParkBench")
+	_box(park, Vector3(2.0, 0.55, 0.65), Vector3(6, 0.35, 0), Color("#a8794f"), "ParkBench")
 
 func _build_street_details() -> void:
 	for x in [-24.0, 24.0]:
