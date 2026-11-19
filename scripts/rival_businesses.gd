@@ -107,7 +107,9 @@ func get_district_rating() -> int:
 	for rival in rivals:
 		competitor_strength += int(rival["appeal"])
 	var pressure := int(float(competitor_strength) / float(maxi(1, rivals.size())))
-	return clampi(50 + average / 2 - pressure / 3 + mini(15, player_businesses * 3), 0, 100)
+	var civic := get_parent().get_node_or_null("CityDevelopment")
+	var civic_bonus := int(civic.call("get_completed_count")) * 2 if civic != null and civic.has_method("get_completed_count") else 0
+	return clampi(50 + average / 2 - pressure / 3 + mini(15, player_businesses * 3) + civic_bonus, 0, 100)
 
 func _save_stats() -> void:
 	var config := ConfigFile.new()
