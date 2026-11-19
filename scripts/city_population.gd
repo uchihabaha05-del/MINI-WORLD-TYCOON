@@ -47,7 +47,7 @@ func _create_hud() -> void:
 	add_child(layer)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(650, 198)
-	panel.custom_minimum_size = Vector2(290, 62)
+	panel.custom_minimum_size = Vector2(290, 58)
 	layer.add_child(panel)
 	population_label = Label.new()
 	population_label.add_theme_font_size_override("font_size", 17)
