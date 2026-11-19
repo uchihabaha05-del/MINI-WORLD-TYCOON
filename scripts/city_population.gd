@@ -44,6 +44,8 @@ func _recalculate_population() -> void:
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.add_to_group("city_dashboard_panels")
+	layer.visible = false
 	layer.name = "CityLifeHUD"
 	layer.layer = 3
 	add_child(layer)
