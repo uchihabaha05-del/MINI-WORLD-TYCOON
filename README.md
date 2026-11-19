@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Milestone 33 — collision-aware city and camera-relative movement**
+- Added physical building collision volumes to the MINI MARKET and generated city buildings, so the player can no longer walk through their walls.
+- Added trunk collision to city trees while leaving their foliage as visual geometry.
+- Movement direction is now relative to the camera heading: swiping to rotate the camera changes which world direction the joystick's forward input travels.
+- Customers now turn to face each route segment while walking to their destinations.
+- Kept the analog joystick, orbit camera, animated crowd, sprint, jump and interaction systems.
+
+## Previous milestone
+
 **Milestone 32 — analog controls, orbit camera and animated crowds**
 - Replaced the four-direction touch pad with a true analog virtual joystick: direction and movement strength follow the finger position.
 - Added right-side swipe camera orbit with pitch limits; camera zoom now changes follow distance as well as field of view.
