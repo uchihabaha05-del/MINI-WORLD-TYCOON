@@ -4,6 +4,16 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 20 — major city expansion**
+- Expanded the playable ground and road grid to a 220 × 220 city footprint with two outer ring-road axes and four new outer districts.
+- Expanded land development from four to twelve buildable plots while retaining the original four plot positions and saved ownership/building data.
+- Added new district buildings, landscaped green squares, sidewalks and street lighting to make the outer city readable.
+- Increased the player exploration bounds so the expanded map can be traversed.
+- Increased road traffic to ten vehicles and extended vehicle travel routes into the outer districts.
+- Expanded parking from eight to sixteen bays, with up to twelve occupied at once.
+- Utility connection controls now generate for all twelve plots, and the HUD reports the actual city-wide connection count.
+- Existing businesses, workers, appeal, population, saves and city economy remain part of the same project.
+
 **Milestone 19 — business appeal and city demand**
 - Each commercial plot has an appeal score from 0 to 100, saved independently.
 - Marketing raises appeal by 10 points for a fee of 120 coins plus 20 coins per building level.
