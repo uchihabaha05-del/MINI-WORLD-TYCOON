@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 4 — land purchase, construction and economy**
+- Added four selectable plots in the city.
+- Players can buy land, then build a shop, cafe or apartments.
+- Buildings generate passive income every 10 seconds; upgrades increase income.
+- Added a HUD with cash, plot details and affordability checks.
+- Added local save/load for cash, ownership, building type and level.
+
 **Milestone 1 — procedural city environment**
 - Replaced the starter floor with a stylized 3D city blockout.
 - Added a cross-shaped road network, sidewalks, lane markings and crosswalks.
