@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 7 — checkout and customer-driven sales**
+- Added a checkout counter, cash register, cashier character and three queue markers.
+- Moved the product shelves inside the MINI MARKET building.
+- Customers now trigger a purchase when they reach the entrance; sales no longer happen on an independent timer.
+- Each customer purchase deducts one stocked item and credits the sale price to the shared wallet.
+
 **Milestone 6 — store inventory and sales**
 - Added three visible product shelves: bread, drinks and snacks.
 - Added restocking in batches of five, with purchase costs deducted from cash.
