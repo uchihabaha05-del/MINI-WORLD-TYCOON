@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 16 — expanded city businesses**
+- Added two new construction options: restaurant (1,100 coins, 125 income per cycle) and workshop (800 coins, 105 income per cycle).
+- Both businesses use the existing plot purchase, upgrade, save/load and passive-income systems.
+- Added a portfolio summary showing the number of operating enterprises and combined income per 10-second cycle.
+- Existing shop, cafe and apartment construction remains available.
+
 **Milestone 15 — electricity and water utilities**
 - Added per-plot utility connections for electricity and water.
 - Connecting an owned plot costs 120 coins.
