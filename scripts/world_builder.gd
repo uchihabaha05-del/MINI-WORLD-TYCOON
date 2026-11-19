@@ -24,9 +24,10 @@ func _ready() -> void:
 	_build_park()
 	_build_street_details()
 	_build_roadside_furniture()
+	_build_outer_districts()
 
 func _build_ground() -> void:
-	_box(self, Vector3(110, 0.5, 110), Vector3(0, -0.3, 0), GRASS, "CityGround")
+	_box(self, Vector3(220, 0.5, 220), Vector3(0, -0.3, 0), GRASS, "CityGround")
 	# Subtle green plots outside the central streets.
 	for x in [-42.0, 42.0]:
 		for z in [-42.0, 42.0]:
@@ -34,24 +35,24 @@ func _build_ground() -> void:
 
 func _build_roads() -> void:
 	# Two main streets form a simple, readable city grid.
-	_box(self, Vector3(110, 0.12, 9), Vector3(0, 0.02, 0), ROAD, "MainRoadEastWest")
-	_box(self, Vector3(9, 0.13, 110), Vector3(0, 0.03, 0), ROAD, "MainRoadNorthSouth")
+	_box(self, Vector3(220, 0.12, 9), Vector3(0, 0.02, 0), ROAD, "MainRoadEastWest")
+	_box(self, Vector3(9, 0.13, 220), Vector3(0, 0.03, 0), ROAD, "MainRoadNorthSouth")
 
 	# Secondary streets on the outer blocks.
 	for z in [-30.0, 30.0]:
-		_box(self, Vector3(110, 0.1, 6), Vector3(0, 0.015, z), ROAD, "SideRoad")
+		_box(self, Vector3(220, 0.1, 6), Vector3(0, 0.015, z), ROAD, "SideRoad")
 	for x in [-30.0, 30.0]:
-		_box(self, Vector3(6, 0.1, 110), Vector3(x, 0.015, 0), ROAD, "SideRoad")
+		_box(self, Vector3(6, 0.1, 220), Vector3(x, 0.015, 0), ROAD, "SideRoad")
 
 	# Continuous sidewalks and raised curbs beside the secondary streets.
 	for z in [-30.0, 30.0]:
 		for side in [-1.0, 1.0]:
-			_box(self, Vector3(110, 0.16, 1.5), Vector3(0, 0.11, z + side * 3.75), SIDEWALK, "SideRoadSidewalk")
-			_box(self, Vector3(110, 0.22, 0.18), Vector3(0, 0.17, z + side * 3.05), Color("#aaa99f"), "SideRoadCurb")
+			_box(self, Vector3(220, 0.16, 1.5), Vector3(0, 0.11, z + side * 3.75), SIDEWALK, "SideRoadSidewalk")
+			_box(self, Vector3(220, 0.22, 0.18), Vector3(0, 0.17, z + side * 3.05), Color("#aaa99f"), "SideRoadCurb")
 	for x in [-30.0, 30.0]:
 		for side in [-1.0, 1.0]:
-			_box(self, Vector3(1.5, 0.16, 110), Vector3(x + side * 3.75, 0.11, 0), SIDEWALK, "SideRoadSidewalk")
-			_box(self, Vector3(0.18, 0.22, 110), Vector3(x + side * 3.05, 0.17, 0), Color("#aaa99f"), "SideRoadCurb")
+			_box(self, Vector3(1.5, 0.16, 220), Vector3(x + side * 3.75, 0.11, 0), SIDEWALK, "SideRoadSidewalk")
+			_box(self, Vector3(0.18, 0.22, 220), Vector3(x + side * 3.05, 0.17, 0), Color("#aaa99f"), "SideRoadCurb")
 
 	# Broken centre markings on the secondary roads.
 	for i in range(-9, 10):
@@ -323,3 +324,28 @@ func _material(color: Color) -> StandardMaterial3D:
 	material.roughness = 0.82
 	_material_cache[key] = material
 	return material
+
+func _build_outer_districts() -> void:
+	# Two additional ring roads open the map into a larger four-district city.
+	for axis in [-1.0, 1.0]:
+		var road_offset := axis * 66.0
+		_box(self, Vector3(220, 0.14, 7), Vector3(0, 0.025, road_offset), ROAD, "OuterDistrictRoad")
+		_box(self, Vector3(7, 0.14, 220), Vector3(road_offset, 0.025, 0), ROAD, "OuterDistrictRoad")
+		for side in [-1.0, 1.0]:
+			_box(self, Vector3(220, 0.15, 1.4), Vector3(0, 0.12, road_offset + side * 4.2), SIDEWALK, "OuterDistrictSidewalk")
+			_box(self, Vector3(1.4, 0.15, 220), Vector3(road_offset + side * 4.2, 0.12, 0), SIDEWALK, "OuterDistrictSidewalk")
+	for i in range(4):
+		var x := -88.0 + float(i) * 58.0
+		_build_building(Vector3(x, 0, -88), Vector3(18, 13, 15), WALLS[i % WALLS.size()], "NorthDistrict_%d" % i, Color("#8199aa"))
+		_build_building(Vector3(x, 0, 88), Vector3(18, 16, 15), WALLS[(i + 2) % WALLS.size()], "SouthDistrict_%d" % i, Color("#b58b68"))
+	for i in range(4):
+		var z := -48.0 + float(i) * 32.0
+		_tree(self, Vector3(-96, 0, z))
+		_tree(self, Vector3(96, 0, z))
+		_lamp(self, Vector3(-70, 0, z))
+		_lamp(self, Vector3(70, 0, z))
+	# Small landscaped squares make the new districts visually distinct.
+	for center in [Vector3(-78, 0, 0), Vector3(78, 0, 0), Vector3(0, 0, -78), Vector3(0, 0, 78)]:
+		_box(self, Vector3(13, 0.12, 13), center, GRASS_DARK, "DistrictGreen")
+		_tree(self, center + Vector3(-4, 0, -4))
+		_tree(self, center + Vector3(4, 0, 4))
