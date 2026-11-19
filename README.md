@@ -1,5 +1,15 @@
 # MINI WORLD TYCOON
 
+## Current milestone
+
+**Milestone 23 — child-friendly onboarding and simpler game language**
+- Added a short first-business guide directly to the main HUD: choose green land, buy it, build a shop, then collect the first income.
+- The guide advances automatically as the player completes each action and celebrates the first successful payout.
+- Tutorial progress is saved locally, so returning players do not need to repeat the introduction.
+- Reworded key prompts with simple, friendly language such as “монетки”, “земля” and “заработок”; clarified that the shop is the easiest first building.
+- Kept the deeper management systems available for players who want to explore them after learning the basics.
+
+
 A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
