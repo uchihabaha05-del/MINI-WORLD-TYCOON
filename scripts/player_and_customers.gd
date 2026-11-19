@@ -271,6 +271,7 @@ func _serve_customer(business: String, spend: int) -> void:
 	if not visits_by_business.has(business):
 		visits_by_business[business] = 0
 	visits_by_business[business] = int(visits_by_business[business]) + 1
+	_refresh_customer_label()
 	if business == "MINI MARKET":
 		if store_system and store_system.has_method("serve_customer"):
 			store_system.call("serve_customer")
@@ -283,14 +284,22 @@ func _serve_customer(business: String, spend: int) -> void:
 
 func _customer_left(customer: Node3D) -> void:
 	active_customers = maxi(0, active_customers - 1)
-	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+	_refresh_customer_label()
 	if is_instance_valid(customer):
 		customer.queue_free()
 
 func _serve_customer() -> void:
 	if store_system and store_system.has_method("serve_customer"):
 		store_system.call("serve_customer")
+
+func _refresh_customer_label() -> void:
+	if customer_label == null:
+		return
+	var shop_visits := int(visits_by_business.get("MINI MARKET", 0))
+	var cafe_visits := int(visits_by_business.get("Кафе", 0))
+	var restaurant_visits := int(visits_by_business.get("Ресторан", 0))
+	var workshop_visits := int(visits_by_business.get("Мастерская", 0))
+	customer_label.text = "Гости: %d / %d  •  Всего: %d\nMINI MARKET: %d  Кафе: %d\nРесторан: %d  Мастерская: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count, shop_visits, cafe_visits, restaurant_visits, workshop_visits]
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
