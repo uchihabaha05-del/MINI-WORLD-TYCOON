@@ -2,6 +2,17 @@
 
 ## Current milestone
 
+**Milestone 28 — city celebrations and seven-day login rewards**
+- Added 12 rotating city celebration themes with clear descriptions, countdowns and distinct sales multipliers.
+- Active celebrations increase actual shop sale revenue for 45 seconds; the system then restores the normal multiplier.
+- Completing a celebration grants a one-time coin reward and the next celebration is scheduled after a cooldown.
+- Added a seven-day daily reward calendar with increasing rewards from 100 to 700 coins.
+- Daily claims, claim date and streak are saved locally; the reward button disables after a successful claim for that day.
+- Both systems are attached to the main scene and use the existing shared wallet.
+
+
+## Current milestone
+
 **Milestone 27 — expanded beginner campaign and shop achievements**
 - Expanded the first campaign from five to eight goals with clear shop-based objectives.
 - New goals: sell 10 products, earn 500 coins from shop sales, and hire a shop assistant.
