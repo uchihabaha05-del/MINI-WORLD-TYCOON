@@ -2,6 +2,14 @@
 
 ## Current milestone
 
+**Milestone 29 — civic projects and park development**
+- Added six permanent city improvement projects: flower beds, fountain, playground, landmark sculpture, benches and lighting, and a grand park.
+- Each project costs coins, creates visible 3D park scenery, and permanently improves resident happiness and shop demand.
+- Project ownership and bonuses are saved locally; completed projects also improve the business-district rating.
+- Added a scrollable mobile-friendly project panel with affordability and completion states.
+
+## Previous milestone
+
 **Milestone 28 — city celebrations and seven-day login rewards**
 - Added 12 rotating city celebration themes with clear descriptions, countdowns and distinct sales multipliers.
 - Active celebrations increase actual shop sale revenue for 45 seconds; the system then restores the normal multiplier.
