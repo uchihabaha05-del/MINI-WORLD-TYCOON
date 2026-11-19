@@ -12,6 +12,8 @@ const EMPLOYEE_SALARY := 15
 const PAYROLL_INTERVAL := 10.0
 const AUTO_RESTOCK_INTERVAL := 12.0
 const AUTO_RESTOCK_THRESHOLD := 2
+const DELIVERY_AMOUNT := 15
+const DELIVERY_TRAVEL_TIME := 5.0
 
 var manager: Node
 var stock: Array[int] = [5, 5, 5]
@@ -27,6 +29,8 @@ var payroll_timer: Timer
 var auto_restock_timer: Timer
 var payroll_paid_total := 0
 var auto_restocked_total := 0
+var delivery_pending: Array[bool] = [false, false, false]
+var delivery_label: Label
 
 func _ready() -> void:
 	rng.randomize()
@@ -100,7 +104,7 @@ func _create_shop_interface() -> void:
 	panel.offset_left = -300
 	panel.offset_right = -14
 	panel.offset_top = 14
-	panel.offset_bottom = 365
+	panel.offset_bottom = 455
 	layer.add_child(panel)
 
 	var content := VBoxContainer.new()
@@ -114,6 +118,9 @@ func _create_shop_interface() -> void:
 	sales_label = Label.new()
 	sales_label.text = "Продажи: 0  •  Прибыль: 0"
 	content.add_child(sales_label)
+	delivery_label = Label.new()
+	delivery_label.text = "Поставки: готовы к заказу"
+	content.add_child(delivery_label)
 
 	employee_label = Label.new()
 	content.add_child(employee_label)
@@ -134,6 +141,11 @@ func _create_shop_interface() -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_restock_product.bind(i))
 		row.add_child(button)
+		var delivery_button := Button.new()
+		delivery_button.text = "Доставка +15"
+		delivery_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		delivery_button.pressed.connect(_order_delivery.bind(i))
+		row.add_child(delivery_button)
 
 func _restock_product(product_id: int) -> void:
 	if manager == null:
@@ -150,6 +162,75 @@ func _restock_product(product_id: int) -> void:
 	var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
 	if shelf:
 		_update_shelf_products(shelf, product_id)
+
+
+func _order_delivery(product_id: int) -> void:
+	if manager == null or product_id < 0 or product_id >= PRODUCTS.size():
+		return
+	if delivery_pending[product_id]:
+		delivery_label.text = "Эта поставка уже в пути"
+		return
+	var cost := int(PRODUCTS[product_id]["buy"]) * DELIVERY_AMOUNT
+	if int(manager.get("cash")) < cost:
+		delivery_label.text = "Недостаточно монет для заказа"
+		return
+	manager.set("cash", int(manager.get("cash")) - cost)
+	delivery_pending[product_id] = true
+	delivery_label.text = "Грузовик в пути: %s (+%d)" % [PRODUCTS[product_id]["name"], DELIVERY_AMOUNT]
+	manager.call("_save_game")
+	manager.call("_refresh_ui")
+	var truck := _create_delivery_truck()
+	var tween := create_tween()
+	tween.tween_property(truck, "position", Vector3(-17.0, 0.0, -22.0), DELIVERY_TRAVEL_TIME)
+	tween.tween_interval(0.8)
+	tween.tween_callback(_complete_delivery.bind(product_id, truck))
+
+func _create_delivery_truck() -> Node3D:
+	var truck := Node3D.new()
+	truck.name = "SupplierTruck"
+	truck.position = Vector3(-29.0, 0.0, -22.0)
+	add_child(truck)
+	_box_for_parent(truck, Vector3(4.2, 1.5, 2.0), Vector3.ZERO, Color("#d9e4e8"), "TruckCargo")
+	_box_for_parent(truck, Vector3(1.5, 1.2, 1.9), Vector3(2.6, 0.0, 0.0), Color("#4b83a5"), "TruckCab")
+	for x in [-1.2, 2.5]:
+		for z in [-1.05, 1.05]:
+			var wheel := MeshInstance3D.new()
+			wheel.name = "TruckWheel"
+			var mesh := CylinderMesh.new()
+			mesh.top_radius = 0.38
+			mesh.bottom_radius = 0.38
+			mesh.height = 0.18
+			wheel.mesh = mesh
+			wheel.rotation_degrees.z = 90
+			wheel.position = Vector3(x, -0.55, z)
+			wheel.material_override = _mat(Color("#26323a"))
+			truck.add_child(wheel)
+	return truck
+
+func _box_for_parent(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
+	var part := MeshInstance3D.new()
+	part.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	part.mesh = mesh
+	part.position = pos + Vector3(0, 0.75, 0)
+	part.material_override = _mat(color)
+	parent.add_child(part)
+
+func _complete_delivery(product_id: int, truck: Node3D) -> void:
+	if product_id >= 0 and product_id < stock.size():
+		stock[product_id] += DELIVERY_AMOUNT
+		delivery_pending[product_id] = false
+		var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
+		if shelf:
+			_update_shelf_products(shelf, product_id)
+		_save_shop_state()
+		_refresh_shop_ui()
+		delivery_label.text = "Доставлено: %s (+%d шт.)" % [PRODUCTS[product_id]["name"], DELIVERY_AMOUNT]
+	if is_instance_valid(truck):
+		var tween := create_tween()
+		tween.tween_property(truck, "position", Vector3(-29.0, 0.0, -22.0), DELIVERY_TRAVEL_TIME)
+		tween.tween_callback(truck.queue_free)
 
 func _build_checkout_area() -> void:
 	# Checkout counter inside the shop, facing the entrance.
