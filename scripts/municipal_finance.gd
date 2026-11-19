@@ -33,6 +33,8 @@ func _ready() -> void:
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.add_to_group("city_dashboard_panels")
+	layer.visible = false
 	layer.name = "MunicipalFinanceHUD"
 	layer.layer = 6
 	add_child(layer)
