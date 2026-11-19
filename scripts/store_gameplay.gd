@@ -163,6 +163,7 @@ func _restock_product(product_id: int) -> void:
 	stock[product_id] += RESTOCK_AMOUNT
 	_save_shop_state()
 	manager.call("_save_game")
+	manager.call("_check_quests")
 	manager.call("_refresh_ui")
 	_refresh_shop_ui()
 	var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
@@ -305,6 +306,7 @@ func _hire_employee() -> void:
 	employee_hired = true
 	_save_shop_state()
 	manager.call("_save_game")
+	manager.call("_check_quests")
 	manager.call("_refresh_ui")
 	_refresh_shop_ui()
 
