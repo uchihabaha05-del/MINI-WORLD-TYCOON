@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Milestone 31 — character animation and world interaction**
+- Added articulated arms and legs to the player character, with procedural swing animation that changes between walking and sprinting.
+- Added a contextual interaction button that activates when the player approaches the MINI MARKET or a buildable plot.
+- Interacting near the MINI MARKET toggles its management panel; interacting near a plot selects it for construction and management.
+- The shop management panel is now hidden until opened in the world, reducing permanent HUD obstruction.
+- Retained existing touch movement buttons, sprint, jump, stamina, camera zoom and keyboard controls.
+
+## Previous milestone
+
 **Milestone 30 — responsive player controls and movement physics**
 - Rebuilt player movement with acceleration, deceleration, gravity, jump and sprint.
 - Added a stamina system with drain while sprinting and automatic recovery while walking.
