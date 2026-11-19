@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 12 — city road traffic**
+- Added six lightweight procedural cars with bodywork, cabin, wheels and headlights.
+- Cars travel along the existing secondary east-west and north-south roads.
+- Added a traffic HUD counter.
+- Traffic is visual-only and does not add physics bodies, keeping the system lightweight for mobile.
+
 **Milestone 9 — visitor population and crowd control**
 - The city now tracks customers currently walking through the scene separately from the lifetime visitor total.
 - A maximum of six active customers prevents unbounded scene growth on mobile.
