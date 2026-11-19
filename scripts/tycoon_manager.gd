@@ -466,6 +466,14 @@ func _promote_selected_business() -> void:
 	_save_game()
 	_refresh_ui()
 
+func get_taxable_business_income() -> int:
+	var total := 0
+	for plot in plots:
+		var building_type := String(plot.get("building", ""))
+		if not building_type.is_empty() and BUILDINGS.has(building_type):
+			total += int(BUILDINGS[building_type]["income"]) * int(plot.get("level", 1))
+	return total
+
 func get_business_appeal(plot_id: int) -> int:
 	if plot_id < 0 or plot_id >= plots.size():
 		return 50
