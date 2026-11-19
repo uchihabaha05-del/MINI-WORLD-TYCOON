@@ -1,6 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_builder.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/tycoon_manager.gd" id="2_tycoon"]
 
 [sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
@@ -12,6 +13,9 @@ tonemap_mode = 2
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_world")
+
+[node name="TycoonManager" type="Node3D" parent="."]
+script = ExtResource("2_tycoon")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_City")
