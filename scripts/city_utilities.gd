@@ -11,7 +11,7 @@ const CONNECTION_COST := 120
 var manager: Node
 var timer: Timer
 var hud_label: Label
-var connected_plots: Array[bool] = [false, false, false, false]
+var connected_plots: Array[bool] = []
 var electricity_cost := 0
 var water_cost := 0
 var last_total_cost := 0
@@ -19,6 +19,12 @@ var utility_status := "Сети готовы к подключению"
 
 func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
+	var plot_count := 0
+	if manager != null:
+		plot_count = (manager.get("plots") as Array).size()
+	connected_plots.resize(plot_count)
+	for i in range(connected_plots.size()):
+		connected_plots[i] = false
 	_load_state()
 	_create_hud()
 	_recalculate_costs()
@@ -48,11 +54,16 @@ func _create_hud() -> void:
 	hud_label = Label.new()
 	hud_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(hud_label)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(280, 150)
+	content.add_child(scroll)
+	var plot_buttons := VBoxContainer.new()
+	scroll.add_child(plot_buttons)
 	for i in range(connected_plots.size()):
 		var button := Button.new()
 		button.text = "Подключить участок %d — %d" % [i + 1, CONNECTION_COST]
 		button.pressed.connect(_connect_plot.bind(i))
-		content.add_child(button)
+		plot_buttons.add_child(button)
 
 func _connect_plot(plot_id: int) -> void:
 	if plot_id < 0 or plot_id >= connected_plots.size() or connected_plots[plot_id]:
