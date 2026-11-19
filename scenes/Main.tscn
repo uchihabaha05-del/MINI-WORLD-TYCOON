@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_builder.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/tycoon_manager.gd" id="2_tycoon"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/public_transport.gd" id="7_transit"]
 [ext_resource type="Script" path="res://scripts/parking_system.gd" id="8_parking"]
 [ext_resource type="Script" path="res://scripts/city_utilities.gd" id="9_utilities"]
+[ext_resource type="Script" path="res://scripts/municipal_finance.gd" id="10_finance"]
 
 [sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
@@ -44,6 +45,9 @@ script = ExtResource("8_parking")
 
 [node name="CityUtilities" type="Node3D" parent="."]
 script = ExtResource("9_utilities")
+
+[node name="MunicipalFinance" type="Node3D" parent="."]
+script = ExtResource("10_finance")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_City")
