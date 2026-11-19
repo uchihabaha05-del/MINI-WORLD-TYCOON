@@ -112,7 +112,7 @@ func _create_shop_interface() -> void:
 		row.add_child(info)
 		stock_labels.append(info)
 		var button := Button.new()
-		button.text = "+5 · %d" % int(PRODUCTS[i]["buy"]) * RESTOCK_AMOUNT
+		button.text = "+5 · %d" % (int(PRODUCTS[i]["buy"]) * RESTOCK_AMOUNT)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_restock_product.bind(i))
 		row.add_child(button)
