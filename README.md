@@ -2,6 +2,16 @@
 
 ## Current milestone
 
+**Milestone 26 — city progression and unlockable buildings**
+- Added six city development levels based on the number of completed buildings.
+- Level-ups grant one-time coin rewards: 250, 500, 750, 1,200 and 2,000 coins.
+- Cafe, apartments, workshop and restaurant unlock gradually as the player expands the city.
+- Locked building buttons explain the requirement instead of appearing as unexplained unavailable options.
+- City level is saved alongside existing player progress.
+
+
+## Current milestone
+
 **Milestone 25 — mobile HUD layout and lighting pass**
 - Repositioned city population, traffic, bus, parking, utility and rival-business information into separate screen areas to reduce overlap with the main wallet/quest HUD and touch controls.
 - Moved utility controls into the center column and rival statistics to a lower center position.
