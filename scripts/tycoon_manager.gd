@@ -24,6 +24,9 @@ var status_label: Label
 var business_summary_label: Label
 var mission_label: Label
 var tutorial_step: int = 0
+var stars: int = 0
+var quest_done: Array = [false, false, false, false, false]
+var quest_label: Label
 var plot_title: Label
 var plot_info: Label
 var buy_button: Button
@@ -140,6 +143,11 @@ func _create_interface() -> void:
 	mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_label.add_theme_font_size_override("font_size", 15)
 	top_box.add_child(mission_label)
+	quest_label = Label.new()
+	quest_label.custom_minimum_size = Vector2(285, 70)
+	quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quest_label.add_theme_font_size_override("font_size", 14)
+	top_box.add_child(quest_label)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.0
@@ -233,6 +241,7 @@ func _buy_selected_plot() -> void:
 	plots[selected_plot] = plot
 	if tutorial_step < 2:
 		tutorial_step = 2
+	_check_quests()
 	_save_game()
 	_refresh_all_plots()
 	_refresh_ui()
@@ -256,6 +265,7 @@ func _build_selected_plot(building_type: String) -> void:
 	if tutorial_step < 3:
 		tutorial_step = 3
 	_spawn_building(selected_plot)
+	_check_quests()
 	_save_game()
 	_refresh_all_plots()
 	_refresh_ui()
@@ -274,6 +284,7 @@ func _upgrade_selected_plot() -> void:
 	plot["level"] = level + 1
 	plots[selected_plot] = plot
 	_update_building_visual(selected_plot)
+	_check_quests()
 	_save_game()
 	_refresh_all_plots()
 	_refresh_ui()
@@ -385,6 +396,7 @@ func _refresh_ui() -> void:
 			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
 	business_summary_label.text = "Зданий: %d  •  Заработок: %d монет / 10 сек." % [business_count, business_income]
 	_update_mission()
+	_update_quest_text()
 	if status_label.text.is_empty():
 		status_label.text = "Твой магазин приносит монетки!"
 	if not _has_selection():
@@ -449,6 +461,58 @@ func _refresh_ui() -> void:
 	upgrade_button.disabled = cash < 500 * int(plot["level"])
 
 
+
+func _check_quests() -> void:
+	var owned_count := 0
+	var building_count := 0
+	var has_upgrade := false
+	var has_worker := false
+	for plot in plots:
+		if bool(plot.get("owned", false)):
+			owned_count += 1
+		if not String(plot.get("building", "")).is_empty():
+			building_count += 1
+			if int(plot.get("level", 1)) >= 2:
+				has_upgrade = true
+			if int(plot.get("workers", 0)) > 0:
+				has_worker = true
+	var conditions: Array = [
+		owned_count >= 1,
+		building_count >= 1,
+		has_upgrade,
+		has_worker,
+		building_count >= 3
+	]
+	var rewards: Array[int] = [100, 150, 200, 200, 350]
+	var changed := false
+	for i in range(quest_done.size()):
+		if not bool(quest_done[i]) and bool(conditions[i]):
+			quest_done[i] = true
+			stars += 1
+			cash += rewards[i]
+			status_label.text = "⭐ Задание выполнено! +%d монет и звезда!" % rewards[i]
+			changed = true
+	if changed:
+		_save_game()
+
+func _update_quest_text() -> void:
+	var names: Array[String] = [
+		"Купи первый участок",
+		"Построй первое здание",
+		"Улучши любое здание",
+		"Найми работника",
+		"Построй всего 3 здания"
+	]
+	var next_quest := -1
+	for i in range(quest_done.size()):
+		if not bool(quest_done[i]):
+			next_quest = i
+			break
+	if next_quest == -1:
+		quest_label.text = "🏆 Все задания выполнены!\n⭐ Звёзды: %d — продолжай строить город!" % stars
+	else:
+		quest_label.text = "🎮 ЗАДАНИЕ: %s\nНаграда: ⭐ + 1  •  Звёзды: %d" % [names[next_quest], stars]
+
 func _update_mission() -> void:
 	match tutorial_step:
 		0:
@@ -476,6 +540,7 @@ func _hire_plot_worker() -> void:
 	cash -= WORKER_HIRE_COST
 	plot["workers"] = workers + 1
 	plots[selected_plot] = plot
+	_check_quests()
 	_save_game()
 	_refresh_ui()
 
@@ -523,6 +588,9 @@ func _save_game() -> void:
 	var config := ConfigFile.new()
 	config.set_value("economy", "cash", cash)
 	config.set_value("tutorial", "step", tutorial_step)
+	config.set_value("rewards", "stars", stars)
+	for quest_index in range(quest_done.size()):
+		config.set_value("rewards", "quest_%d" % quest_index, bool(quest_done[quest_index]))
 	for i in range(plots.size()):
 		var plot: Dictionary = plots[i]
 		config.set_value("plots", "owned_%d" % i, bool(plot["owned"]))
@@ -538,6 +606,9 @@ func _load_game() -> void:
 		return
 	cash = int(config.get_value("economy", "cash", STARTING_CASH))
 	tutorial_step = clampi(int(config.get_value("tutorial", "step", 0)), 0, 4)
+	stars = maxi(0, int(config.get_value("rewards", "stars", 0)))
+	for quest_index in range(quest_done.size()):
+		quest_done[quest_index] = bool(config.get_value("rewards", "quest_%d" % quest_index, false))
 	for i in range(plots.size()):
 		var plot: Dictionary = plots[i]
 		plot["owned"] = bool(config.get_value("plots", "owned_%d" % i, false))
