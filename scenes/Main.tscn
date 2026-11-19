@@ -1,46 +1,29 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/shop_builder.gd" id="1_shop_builder"]
+[ext_resource type="Script" path="res://scripts/world_builder.gd" id="1_world"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_Floor"]
-size = Vector3(18, 0.3, 14)
-
-[sub_resource type="BoxShape3D" id="BoxShape_Floor"]
-size = Vector3(18, 0.3, 14)
-
-[sub_resource type="StandardMaterial3D" id="Material_Floor"]
-albedo_color = Color(0.78, 0.73, 0.62, 1)
-roughness = 1.0
-
-[sub_resource type="Environment" id="Environment_Main"]
+[sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
-background_color = Color(0.49, 0.72, 0.91, 1)
+background_color = Color(0.48, 0.72, 0.9, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.82, 0.86, 1, 1)
-ambient_light_energy = 0.7
+ambient_light_color = Color(0.82, 0.88, 1, 1)
+ambient_light_energy = 0.8
+tonemap_mode = 2
 
 [node name="Main" type="Node3D"]
-script = ExtResource("1_shop_builder")
+script = ExtResource("1_world")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_Main")
+environment = SubResource("Environment_City")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.8, -0.55, 0)
-light_energy = 1.2
+rotation_degrees = Vector3(-52, -32, 0)
+light_energy = 1.15
 shadow_enabled = true
+directional_shadow_mode = 1
 
 [node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 10.5, 17.5)
+position = Vector3(0, 65, 85)
+rotation_degrees = Vector3(-37, 0, 0)
 current = true
-fov = 58.0
-
-[node name="Floor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.15, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("BoxMesh_Floor")
-surface_material_override/0 = SubResource("Material_Floor")
-
-[node name="Collision" type="CollisionShape3D" parent="Floor"]
-shape = SubResource("BoxShape_Floor")
+fov = 60.0
