@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 15 — electricity and water utilities**
+- Added per-plot utility connections for electricity and water.
+- Connecting an owned plot costs 120 coins.
+- Connected buildings add recurring electricity and water operating costs.
+- Utility charges are deducted from the shared wallet every 20 seconds when there are connected buildings.
+- Utility connection choices persist locally in `user://city_utilities.cfg`.
+
 **Milestone 14 — parking lots and occupancy**
 - Added eight marked parking bays alongside the outer streets.
 - Simulates cars arriving and leaving, with a maximum of six occupied spaces at a time.
