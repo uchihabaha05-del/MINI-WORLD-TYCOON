@@ -7,7 +7,9 @@ const INCOME_INTERVAL := 10.0
 const BUILDINGS := {
 	"Магазин": {"cost": 450, "income": 45, "color": Color("#e5b66b"), "height": 6.0},
 	"Кафе": {"cost": 650, "income": 65, "color": Color("#c77c62"), "height": 5.0},
-	"Апартаменты": {"cost": 900, "income": 90, "color": Color("#8faecb"), "height": 10.0}
+	"Апартаменты": {"cost": 900, "income": 90, "color": Color("#8faecb"), "height": 10.0},
+	"Ресторан": {"cost": 1100, "income": 125, "color": Color("#c66c48"), "height": 7.0},
+	"Мастерская": {"cost": 800, "income": 105, "color": Color("#82918e"), "height": 6.5}
 }
 
 var cash: int = STARTING_CASH
@@ -21,6 +23,8 @@ var buy_button: Button
 var store_button: Button
 var cafe_button: Button
 var apartments_button: Button
+var restaurant_button: Button
+var workshop_button: Button
 var upgrade_button: Button
 var income_timer: Timer
 
@@ -141,6 +145,13 @@ func _create_interface() -> void:
 	build_row.add_child(cafe_button)
 	apartments_button = _make_build_button("Дом · 900", "Апартаменты")
 	build_row.add_child(apartments_button)
+
+	var business_row := HBoxContainer.new()
+	content.add_child(business_row)
+	restaurant_button = _make_build_button("Ресторан · 1100", "Ресторан")
+	business_row.add_child(restaurant_button)
+	workshop_button = _make_build_button("Мастерская · 800", "Мастерская")
+	business_row.add_child(workshop_button)
 
 	upgrade_button = Button.new()
 	upgrade_button.text = "Улучшить здание"
@@ -311,6 +322,8 @@ func _refresh_ui() -> void:
 		store_button.visible = false
 		cafe_button.visible = false
 		apartments_button.visible = false
+		restaurant_button.visible = false
+		workshop_button.visible = false
 		upgrade_button.visible = false
 		return
 
@@ -323,9 +336,13 @@ func _refresh_ui() -> void:
 	store_button.visible = owned and building_type.is_empty()
 	cafe_button.visible = owned and building_type.is_empty()
 	apartments_button.visible = owned and building_type.is_empty()
+	restaurant_button.visible = owned and building_type.is_empty()
+	workshop_button.visible = owned and building_type.is_empty()
 	store_button.disabled = cash < int(BUILDINGS["Магазин"]["cost"])
 	cafe_button.disabled = cash < int(BUILDINGS["Кафе"]["cost"])
 	apartments_button.disabled = cash < int(BUILDINGS["Апартаменты"]["cost"])
+	restaurant_button.disabled = cash < int(BUILDINGS["Ресторан"]["cost"])
+	workshop_button.disabled = cash < int(BUILDINGS["Мастерская"]["cost"])
 	upgrade_button.visible = owned and not building_type.is_empty()
 	if not owned:
 		plot_info.text = "Свободная земля. Цена покупки: %d монет." % PLOT_COST
