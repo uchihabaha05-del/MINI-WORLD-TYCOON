@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 5 — player and customers**
+- Added a controllable third-person character with keyboard and on-screen directional buttons.
+- Camera follows the player while keeping the city visible.
+- Customers periodically walk toward the MINI MARKET entrance and leave.
+- Added a live visitor counter.
+
 **Milestone 4 — land purchase, construction and economy**
 - Added four selectable plots in the city.
 - Players can buy land, then build a shop, cafe or apartments.
