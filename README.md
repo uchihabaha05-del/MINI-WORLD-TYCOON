@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Milestone 32 — analog controls, orbit camera and animated crowds**
+- Replaced the four-direction touch pad with a true analog virtual joystick: direction and movement strength follow the finger position.
+- Added right-side swipe camera orbit with pitch limits; camera zoom now changes follow distance as well as field of view.
+- Added procedural arm and leg swing animation to walking customers, not just the player.
+- Changed keyboard jump to trigger once per key press instead of repeating while Space is held.
+- Restored completed civic-project 3D visuals when loading a saved city, so purchased park upgrades remain visible after restarting.
+
+## Previous milestone
+
 **Milestone 31 — character animation and world interaction**
 - Added articulated arms and legs to the player character, with procedural swing animation that changes between walking and sprinting.
 - Added a contextual interaction button that activates when the player approaches the MINI MARKET or a buildable plot.
