@@ -31,10 +31,12 @@ var payroll_paid_total := 0
 var auto_restocked_total := 0
 var delivery_pending: Array[bool] = [false, false, false]
 var delivery_label: Label
+var city_life: Node
 
 func _ready() -> void:
 	rng.randomize()
 	manager = get_parent().get_node_or_null("TycoonManager")
+	city_life = get_parent().get_node_or_null("CityPopulation")
 	_load_shop_state()
 	_build_shelves()
 	_create_shop_interface()
@@ -277,7 +279,9 @@ func serve_customer() -> void:
 		return
 	var product_id: int = available[rng.randi_range(0, available.size() - 1)]
 	stock[product_id] -= 1
-	var sale := int(PRODUCTS[product_id]["sell"])
+	var base_sale := int(PRODUCTS[product_id]["sell"])
+	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
+	var sale := base_sale + demand_bonus
 	var cost := int(PRODUCTS[product_id]["buy"])
 	manager.set("cash", int(manager.get("cash")) + sale)
 	total_sales += 1
