@@ -2,6 +2,12 @@
 
 ## Current milestone
 
+**Milestone 24 — simple quests, stars and rewards**
+- Added five clear goals: buy land, build a first building, upgrade a building, hire a worker and build three buildings.
+- Completing each goal grants one star and a coin reward; the next unfinished goal is shown in the HUD.
+- Star totals and completed goals are saved locally, so progress survives closing the game.
+- Quest checks are connected to the actual land, construction, upgrade and hiring actions.
+
 **Milestone 23 — child-friendly onboarding and simpler game language**
 - Added a short first-business guide directly to the main HUD: choose green land, buy it, build a shop, then collect the first income.
 - The guide advances automatically as the player completes each action and celebrates the first successful payout.
