@@ -22,8 +22,8 @@ func _create_hud() -> void:
 	layer.layer = 8
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(330, 112)
-	panel.custom_minimum_size = Vector2(300, 92)
+	panel.position = Vector2(18, 112)
+	panel.custom_minimum_size = Vector2(290, 82)
 	layer.add_child(panel)
 	var box := VBoxContainer.new()
 	panel.add_child(box)
