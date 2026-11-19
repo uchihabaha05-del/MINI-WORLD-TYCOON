@@ -33,6 +33,8 @@ var workshop_button: Button
 var upgrade_button: Button
 var hire_worker_button: Button
 var staff_label: Label
+var appeal_label: Label
+var marketing_button: Button
 var income_timer: Timer
 
 func _ready() -> void:
@@ -93,7 +95,8 @@ func _create_plots() -> void:
 			"owned": false,
 			"building": "",
 			"level": 0,
-			"workers": 0
+			"workers": 0,
+			"appeal": 50
 		})
 
 func _create_interface() -> void:
@@ -174,6 +177,12 @@ func _create_interface() -> void:
 	hire_worker_button = Button.new()
 	hire_worker_button.pressed.connect(_hire_plot_worker)
 	content.add_child(hire_worker_button)
+	appeal_label = Label.new()
+	appeal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(appeal_label)
+	marketing_button = Button.new()
+	marketing_button.pressed.connect(_promote_selected_business)
+	content.add_child(marketing_button)
 
 func _make_build_button(caption: String, building_type: String) -> Button:
 	var button := Button.new()
@@ -365,6 +374,8 @@ func _refresh_ui() -> void:
 		upgrade_button.visible = false
 		staff_label.visible = false
 		hire_worker_button.visible = false
+		appeal_label.visible = false
+		marketing_button.visible = false
 		return
 
 	var plot: Dictionary = plots[selected_plot]
@@ -392,6 +403,13 @@ func _refresh_ui() -> void:
 	staff_label.text = "Персонал: %d/%d • зарплата %d за цикл • бонус +%d дохода" % [worker_count, worker_limit, worker_count * WORKER_SALARY, worker_count * WORKER_BONUS]
 	hire_worker_button.text = "Нанять работника — %d" % WORKER_HIRE_COST
 	hire_worker_button.disabled = cash < WORKER_HIRE_COST or worker_count >= worker_limit
+	appeal_label.visible = has_business
+	marketing_button.visible = has_business
+	var appeal := int(plot.get("appeal", 50))
+	var marketing_cost := 120 + int(plot["level"]) * 20
+	appeal_label.text = "Привлекательность: %d/100 • выше показатель — чаще визиты" % appeal
+	marketing_button.text = "Реклама +10 привлекательности — %d" % marketing_cost
+	marketing_button.disabled = cash < marketing_cost or appeal >= 100
 	if not owned:
 		plot_info.text = "Свободная земля. Цена покупки: %d монет." % PLOT_COST
 	elif building_type.is_empty():
@@ -422,6 +440,29 @@ func _hire_plot_worker() -> void:
 	_save_game()
 	_refresh_ui()
 
+
+func _promote_selected_business() -> void:
+	if not _has_selection():
+		return
+	var plot: Dictionary = plots[selected_plot]
+	var building_type := String(plot["building"])
+	if building_type.is_empty() or building_type == "Апартаменты":
+		return
+	var appeal := int(plot.get("appeal", 50))
+	var cost := 120 + int(plot["level"]) * 20
+	if appeal >= 100 or cash < cost:
+		return
+	cash -= cost
+	plot["appeal"] = mini(100, appeal + 10)
+	plots[selected_plot] = plot
+	_save_game()
+	_refresh_ui()
+
+func get_business_appeal(plot_id: int) -> int:
+	if plot_id < 0 or plot_id >= plots.size():
+		return 50
+	return int(plots[plot_id].get("appeal", 50))
+
 func _has_selection() -> bool:
 	return selected_plot >= 0 and selected_plot < plots.size()
 
@@ -440,6 +481,7 @@ func _save_game() -> void:
 		config.set_value("plots", "building_%d" % i, String(plot["building"]))
 		config.set_value("plots", "level_%d" % i, int(plot["level"]))
 		config.set_value("plots", "workers_%d" % i, int(plot.get("workers", 0)))
+		config.set_value("plots", "appeal_%d" % i, int(plot.get("appeal", 50)))
 	config.save("user://tycoon_save.cfg")
 
 func _load_game() -> void:
@@ -453,4 +495,5 @@ func _load_game() -> void:
 		plot["building"] = String(config.get_value("plots", "building_%d" % i, ""))
 		plot["level"] = int(config.get_value("plots", "level_%d" % i, 0))
 		plot["workers"] = maxi(0, int(config.get_value("plots", "workers_%d" % i, 0)))
+		plot["appeal"] = clampi(int(config.get_value("plots", "appeal_%d" % i, 50)), 0, 100)
 		plots[i] = plot
