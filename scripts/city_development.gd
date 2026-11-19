@@ -24,6 +24,7 @@ var summary_label: Label
 var status_label: Label
 var total_demand_bonus := 0
 var total_happiness_bonus := 0
+var ui_timer: Timer
 
 func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
@@ -34,6 +35,11 @@ func _ready() -> void:
 	_rebuild_projects()
 	_apply_bonuses()
 	_refresh_ui()
+	ui_timer = Timer.new()
+	ui_timer.wait_time = 2.0
+	ui_timer.autostart = true
+	ui_timer.timeout.connect(_refresh_ui)
+	add_child(ui_timer)
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -134,6 +140,7 @@ func _apply_bonuses() -> void:
 			total_happiness_bonus += int(PROJECTS[i]["happiness"])
 	if city_life != null:
 		city_life.set("civic_demand_bonus", total_demand_bonus)
+		city_life.set("civic_happiness_bonus", total_happiness_bonus)
 		city_life.set("happiness", mini(100, 70 + total_happiness_bonus))
 		if city_life.has_method("_refresh_hud"):
 			city_life.call("_refresh_hud")
