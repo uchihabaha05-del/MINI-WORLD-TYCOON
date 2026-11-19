@@ -41,13 +41,13 @@ func _create_hud() -> void:
 	layer.layer = 7
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(650, 18)
-	panel.custom_minimum_size = Vector2(300, 86)
+	panel.position = Vector2(330, 198)
+	panel.custom_minimum_size = Vector2(290, 82)
 	layer.add_child(panel)
 	var box := VBoxContainer.new()
 	panel.add_child(box)
 	event_label = Label.new()
-	event_label.custom_minimum_size = Vector2(280, 72)
+	event_label.custom_minimum_size = Vector2(270, 68)
 	event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	event_label.add_theme_font_size_override("font_size", 15)
 	box.add_child(event_label)
