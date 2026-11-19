@@ -320,10 +320,6 @@ func _customer_left(customer: Node3D) -> void:
 	if is_instance_valid(customer):
 		customer.queue_free()
 
-func _serve_customer() -> void:
-	if store_system and store_system.has_method("serve_customer"):
-		store_system.call("serve_customer")
-
 func _refresh_customer_label() -> void:
 	if customer_label == null:
 		return
