@@ -1,6 +1,6 @@
 extends Node3D
 
-# MINI WORLD TYCOON — Milestone 6: stocked shelves and automatic retail sales.
+# MINI WORLD TYCOON — Milestone 31: contextual shop management interaction.
 const PRODUCTS := [
 	{"name": "Хлеб", "buy": 12, "sell": 22, "color": Color("#d7a45f")},
 	{"name": "Напитки", "buy": 18, "sell": 32, "color": Color("#63a9d1")},
@@ -33,6 +33,7 @@ var delivery_pending: Array[bool] = [false, false, false]
 var delivery_label: Label
 var city_life: Node
 var city_event_multiplier: float = 1.0
+var shop_panel: PanelContainer
 
 func _ready() -> void:
 	rng.randomize()
@@ -101,18 +102,19 @@ func _create_shop_interface() -> void:
 	layer.layer = 6
 	add_child(layer)
 
-	var panel := PanelContainer.new()
-	panel.anchor_left = 1.0
-	panel.anchor_right = 1.0
-	panel.offset_left = -300
-	panel.offset_right = -14
-	panel.offset_top = 14
-	panel.offset_bottom = -14
-	layer.add_child(panel)
+	shop_panel = PanelContainer.new()
+	shop_panel.anchor_left = 1.0
+	shop_panel.anchor_right = 1.0
+	shop_panel.offset_left = -300
+	shop_panel.offset_right = -14
+	shop_panel.offset_top = 14
+	shop_panel.offset_bottom = -14
+	shop_panel.visible = false
+	layer.add_child(shop_panel)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(scroll)
+	shop_panel.add_child(scroll)
 	var content := VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
@@ -275,6 +277,10 @@ func set_city_event_multiplier(value: float) -> void:
 	city_event_multiplier = clampf(value, 1.0, 2.0)
 	if sales_label != null:
 		sales_label.text = "Городское событие: бонус продаж x%.2f" % city_event_multiplier if city_event_multiplier > 1.0 else "Продажи магазина"
+
+func toggle_shop_panel() -> void:
+	if shop_panel != null:
+		shop_panel.visible = not shop_panel.visible
 
 func serve_customer() -> void:
 	var available: Array[int] = []
