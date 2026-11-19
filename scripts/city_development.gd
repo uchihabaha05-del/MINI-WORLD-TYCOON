@@ -32,7 +32,6 @@ func _ready() -> void:
 	rivals = get_parent().get_node_or_null("RivalBusinesses")
 	_load_projects()
 	_create_hud()
-	_rebuild_projects()
 	for project_id in range(completed.size()):
 		if completed[project_id]:
 			_build_project_visual(project_id)
