@@ -2,6 +2,13 @@
 
 ## Current milestone
 
+**Milestone 35 — Godot parse-error repair**
+- Fixed the touch-camera drag vector type inference by declaring it explicitly as `Vector2`.
+- Removed a call to a nonexistent `_rebuild_projects()` method; project buttons are already created in `_create_hud()` and populated by `_refresh_ui()`.
+- Kept project save/load, visuals, bonuses and purchase behavior intact.
+
+## Previous milestone
+
 **Milestone 34 — traffic, storefront and intersection detail**
 - Added correctly oriented wheels with continuous spin animation on moving cars.
 - Added front/rear bumpers, grille, side mirrors, roof glass, headlights and rear lamps.
