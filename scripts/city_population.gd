@@ -26,6 +26,9 @@ func _ready() -> void:
 func get_population() -> int:
 	return population
 
+func get_happiness() -> int:
+	return happiness
+
 func get_demand_bonus() -> int:
 	return mini(5, int(population / 30.0))
 
