@@ -2,6 +2,16 @@
 
 ## Current milestone
 
+**Milestone 30 — responsive player controls and movement physics**
+- Rebuilt player movement with acceleration, deceleration, gravity, jump and sprint.
+- Added a stamina system with drain while sprinting and automatic recovery while walking.
+- Added mobile sprint and jump controls alongside the directional pad.
+- Added camera zoom controls and smoother follow/turn response.
+- Added a physical ground collider and enabled player collision queries instead of floating movement.
+- Added lightweight procedural movement feedback on the character mesh and a live movement-state indicator.
+
+## Previous milestone
+
 **Milestone 29 — civic projects and park development**
 - Added six permanent city improvement projects: flower beds, fountain, playground, landmark sculpture, benches and lighting, and a grand park.
 - Each project costs coins, creates visible 3D park scenery, and permanently improves resident happiness and shop demand.
