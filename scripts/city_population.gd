@@ -10,6 +10,7 @@ var manager: Node
 var population := BASE_POPULATION
 var happiness := 70
 var civic_demand_bonus := 0
+var civic_happiness_bonus := 0
 var population_label: Label
 var life_timer: Timer
 var visible_residents: Array[Node3D] = []
@@ -67,7 +68,7 @@ func _on_city_tick() -> void:
 	if apartment_count > 0:
 		happiness = mini(100, happiness + 1)
 	else:
-		happiness = maxi(45, happiness - 1)
+		happiness = maxi(45 + civic_happiness_bonus, happiness - 1)
 	_refresh_hud()
 	_spawn_resident_group()
 
