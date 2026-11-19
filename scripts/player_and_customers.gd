@@ -16,9 +16,12 @@ var active_customers := 0
 var customer_label: Label
 var joystick_hint: Label
 var store_system: Node
+var tycoon_manager: Node
+var visits_by_business := {"MINI MARKET": 0, "Кафе": 0, "Ресторан": 0, "Мастерская": 0, "Магазин": 0}
 
 func _ready() -> void:
 	store_system = get_tree().current_scene.get_node_or_null("StoreGameplay")
+	tycoon_manager = get_tree().current_scene.get_node_or_null("TycoonManager")
 	_create_player()
 	_create_controls()
 	_create_customer_counter()
@@ -196,10 +199,11 @@ func _spawn_customer() -> void:
 	customer_count += 1
 	active_customers += 1
 	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
 	var customer := Node3D.new()
 	customer.name = "Customer_%d" % customer_count
-	customer.position = Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
+	var spawn_position := Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
+	customer.position = spawn_position
 	add_child(customer)
 
 	var body := MeshInstance3D.new()
@@ -220,24 +224,62 @@ func _spawn_customer() -> void:
 	head.material_override = _material(Color("#e7b895"))
 	customer.add_child(head)
 
-	var path := [
-		customer.global_position,
-		Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, -2.0),
-		SHOP_ENTRANCE + Vector3(float((customer_count % 3) - 1) * 1.2, 0.0, 0.0)
-	]
-	_walk_customer(customer, path)
+	var destination := _choose_business_destination()
+	var target: Vector3 = destination["position"]
+	var route := [spawn_position, Vector3(target.x, 0.0, spawn_position.z), target]
+	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position)
 
-func _walk_customer(customer: Node3D, path: Array) -> void:
+func _choose_business_destination() -> Dictionary:
+	var destinations: Array[Dictionary] = [
+		{"business": "MINI MARKET", "position": SHOP_ENTRANCE, "spend": 0}
+	]
+	if tycoon_manager != null:
+		var owned_plots: Array = tycoon_manager.get("plots")
+		for plot in owned_plots:
+			var building := String(plot.get("building", ""))
+			if building.is_empty() or building == "Апартаменты":
+				continue
+			var area := plot.get("area") as Node3D
+			if area == null:
+				continue
+			var entrance := area.global_position + Vector3(0.0, 0.0, 5.5)
+			var spend := 18
+			if building == "Ресторан":
+				spend = 28
+			elif building == "Мастерская":
+				spend = 24
+			elif building == "Кафе":
+				spend = 16
+			destinations.append({"business": building, "position": entrance, "spend": spend})
+	var chosen: Dictionary = destinations[randi_range(0, destinations.size() - 1)]
+	return chosen
+
+func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3) -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_LINEAR)
 	tween.set_ease(Tween.EASE_IN_OUT)
 	for point in path:
 		var destination: Vector3 = point
-		tween.tween_property(customer, "global_position", destination, 2.8)
-	tween.tween_callback(_serve_customer)
+		var travel_time := maxf(1.2, customer.global_position.distance_to(destination) / 4.0)
+		tween.tween_property(customer, "global_position", destination, travel_time)
+	tween.tween_callback(_serve_customer.bind(business, spend))
 	tween.tween_interval(2.0)
-	tween.tween_property(customer, "global_position", Vector3(-15.0, 0.0, 2.0), 3.0)
+	tween.tween_property(customer, "global_position", spawn_position, 3.0)
 	tween.tween_callback(_customer_left.bind(customer))
+
+func _serve_customer(business: String, spend: int) -> void:
+	if not visits_by_business.has(business):
+		visits_by_business[business] = 0
+	visits_by_business[business] = int(visits_by_business[business]) + 1
+	if business == "MINI MARKET":
+		if store_system and store_system.has_method("serve_customer"):
+			store_system.call("serve_customer")
+		return
+	if tycoon_manager == null:
+		return
+	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + spend)
+	tycoon_manager.call("_save_game")
+	tycoon_manager.call("_refresh_ui")
 
 func _customer_left(customer: Node3D) -> void:
 	active_customers = maxi(0, active_customers - 1)
