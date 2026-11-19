@@ -538,11 +538,6 @@ func _load_game() -> void:
 		return
 	cash = int(config.get_value("economy", "cash", STARTING_CASH))
 	tutorial_step = clampi(int(config.get_value("tutorial", "step", 0)), 0, 4)
-	if tutorial_step == 0:
-		for saved_plot in plots:
-			if not String(saved_plot.get("building", "")).is_empty():
-				tutorial_step = 4
-				break
 	for i in range(plots.size()):
 		var plot: Dictionary = plots[i]
 		plot["owned"] = bool(config.get_value("plots", "owned_%d" % i, false))
@@ -551,3 +546,8 @@ func _load_game() -> void:
 		plot["workers"] = maxi(0, int(config.get_value("plots", "workers_%d" % i, 0)))
 		plot["appeal"] = clampi(int(config.get_value("plots", "appeal_%d" % i, 50)), 0, 100)
 		plots[i] = plot
+	if tutorial_step == 0:
+		for saved_plot in plots:
+			if not String(saved_plot.get("building", "")).is_empty():
+				tutorial_step = 4
+				break
