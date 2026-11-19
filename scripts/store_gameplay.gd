@@ -7,7 +7,6 @@ const PRODUCTS := [
 	{"name": "Снэки", "buy": 25, "sell": 45, "color": Color("#d77d68")}
 ]
 const RESTOCK_AMOUNT := 5
-const SALES_INTERVAL := 5.0
 
 var manager: Node
 var stock: Array[int] = [5, 5, 5]
@@ -15,7 +14,6 @@ var stock_labels: Array[Label] = []
 var sales_label: Label
 var total_sales := 0
 var total_profit := 0
-var sales_timer: Timer
 var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
@@ -23,7 +21,6 @@ func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
 	_build_shelves()
 	_create_shop_interface()
-	_start_sales_timer()
 	_refresh_shop_ui()
 
 func _build_shelves() -> void:
@@ -31,7 +28,7 @@ func _build_shelves() -> void:
 		var x := -21.0 + float(i) * 6.0
 		var shelf := Node3D.new()
 		shelf.name = "ProductShelf_%d" % i
-		shelf.position = Vector3(x, 0.0, -7.0)
+		shelf.position = Vector3(x, 0.0, -14.0)
 		add_child(shelf)
 
 		var base := MeshInstance3D.new()
@@ -59,6 +56,7 @@ func _build_shelves() -> void:
 		label.modulate = Color.WHITE
 		shelf.add_child(label)
 		_update_shelf_products(shelf, i)
+	_build_checkout_area()
 
 func _update_shelf_products(shelf: Node3D, product_id: int) -> void:
 	for child in shelf.get_children():
@@ -132,21 +130,45 @@ func _restock_product(product_id: int) -> void:
 	if shelf:
 		_update_shelf_products(shelf, product_id)
 
-func _start_sales_timer() -> void:
-	sales_timer = Timer.new()
-	sales_timer.wait_time = SALES_INTERVAL
-	sales_timer.autostart = true
-	sales_timer.timeout.connect(_process_customer_purchase)
-	add_child(sales_timer)
+func _build_checkout_area() -> void:
+	# Checkout counter inside the shop, facing the entrance.
+	_box(Vector3(5.0, 1.05, 1.25), Vector3(-15.0, 0.55, -10.4), Color("#76513b"), "CheckoutCounter")
+	_box(Vector3(4.8, 0.12, 1.15), Vector3(-15.0, 1.12, -10.4), Color("#d6b98c"), "CheckoutTop")
+	_box(Vector3(1.0, 0.65, 0.65), Vector3(-15.0, 1.48, -10.2), Color("#303b43"), "CashRegister")
+	# A simple cashier character behind the counter.
+	var cashier := Node3D.new()
+	cashier.name = "Cashier"
+	cashier.position = Vector3(-15.0, 0.0, -12.0)
+	add_child(cashier)
+	_capsule(cashier, Vector3(0, 0.85, 0), 0.34, 1.5, Color("#315f86"))
+	_sphere(cashier, Vector3(0, 1.75, 0), 0.23, Color("#e8b995"))
+	var cashier_tag := Label3D.new()
+	cashier_tag.text = "КАССИР"
+	cashier_tag.font_size = 24
+	cashier_tag.pixel_size = 0.01
+	cashier_tag.position = Vector3(0, 2.2, 0)
+	cashier.add_child(cashier_tag)
+	# Queue markers outside the entrance.
+	for i in range(3):
+		var marker := MeshInstance3D.new()
+		marker.name = "QueueMarker_%d" % i
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.22
+		mesh.bottom_radius = 0.22
+		mesh.height = 0.035
+		marker.mesh = mesh
+		marker.position = Vector3(-15.0 + float(i - 1) * 1.1, 0.12, -6.2)
+		marker.material_override = _mat(Color("#e8c75b"))
+		add_child(marker)
 
-func _process_customer_purchase() -> void:
+func serve_customer() -> void:
 	var available: Array[int] = []
 	for i in range(stock.size()):
 		if stock[i] > 0:
 			available.append(i)
 	if available.is_empty() or manager == null:
+		sales_label.text = "Нет товара на полках"
 		return
-
 	var product_id: int = available[rng.randi_range(0, available.size() - 1)]
 	stock[product_id] -= 1
 	var sale := int(PRODUCTS[product_id]["sell"])
@@ -160,6 +182,36 @@ func _process_customer_purchase() -> void:
 	var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
 	if shelf:
 		_update_shelf_products(shelf, product_id)
+
+func _box(size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
+	var instance := MeshInstance3D.new()
+	instance.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	instance.mesh = mesh
+	instance.position = pos
+	instance.material_override = _mat(color)
+	add_child(instance)
+
+func _capsule(parent: Node3D, pos: Vector3, radius: float, height: float, color: Color) -> void:
+	var instance := MeshInstance3D.new()
+	var mesh := CapsuleMesh.new()
+	mesh.radius = radius
+	mesh.height = height
+	instance.mesh = mesh
+	instance.position = pos
+	instance.material_override = _mat(color)
+	parent.add_child(instance)
+
+func _sphere(parent: Node3D, pos: Vector3, radius: float, color: Color) -> void:
+	var instance := MeshInstance3D.new()
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	instance.mesh = mesh
+	instance.position = pos
+	instance.material_override = _mat(color)
+	parent.add_child(instance)
 
 func _refresh_shop_ui() -> void:
 	for i in range(stock_labels.size()):
