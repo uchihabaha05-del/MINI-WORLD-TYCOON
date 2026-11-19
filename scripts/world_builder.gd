@@ -94,6 +94,7 @@ func _build_shop() -> void:
 
 	# Main shop body and contrasting roof.
 	_box(shop, Vector3(17, 7, 12), Vector3(0, 3.5, 0), Color("#f1dfc4"), "ShopBuilding")
+	_add_static_box_collision(shop, Vector3(17, 7, 12), Vector3(0, 3.5, 0), "ShopCollision")
 	_box(shop, Vector3(18, 0.65, 13), Vector3(0, 7.25, 0), Color("#b85f49"), "ShopRoof")
 	_box(shop, Vector3(17.2, 1.15, 0.25), Vector3(0, 5.8, 6.12), Color("#e8a85e"), "ShopFacadeBand")
 
@@ -133,6 +134,7 @@ func _build_building(origin: Vector3, size: Vector3, wall_color: Color, building
 
 	# Main volume, roof cap and subtle facade bands.
 	_box(building, size, Vector3(0, size.y * 0.5, 0), wall_color, "BuildingBody")
+	_add_static_box_collision(building, size, Vector3(0, size.y * 0.5, 0), "BuildingCollision")
 	_box(building, Vector3(size.x + 0.9, 0.55, size.z + 0.9), Vector3(0, size.y + 0.28, 0), roof_color, "FlatRoof")
 	_box(building, Vector3(size.x + 0.35, 0.28, 0.24), Vector3(0, 0.35, size.z * 0.5 + 0.12), Color("#f4eee3"), "FrontBaseTrim")
 	_box(building, Vector3(size.x + 0.35, 0.24, 0.24), Vector3(0, size.y - 0.55, size.z * 0.5 + 0.12), Color("#f4eee3"), "FrontTopTrim")
@@ -279,6 +281,7 @@ func _tree(parent: Node3D, pos: Vector3) -> void:
 	trunk.position = pos + Vector3(0, 0.9, 0)
 	trunk.material_override = _material(Color("#805638"))
 	parent.add_child(trunk)
+	_add_static_cylinder_collision(parent, 0.28, 1.8, pos + Vector3(0, 0.9, 0), "TreeTrunkCollision")
 
 	var crown := MeshInstance3D.new()
 	crown.name = "TreeCrown"
@@ -314,6 +317,33 @@ func _box(parent: Node3D, box_size: Vector3, pos: Vector3, color: Color, node_na
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	parent.add_child(instance)
 	return instance
+
+func _add_static_box_collision(parent: Node3D, size: Vector3, pos: Vector3, node_name: String) -> void:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.collision_layer = 1
+	body.collision_mask = 0
+	var shape_node := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	shape_node.shape = shape
+	shape_node.position = pos
+	body.add_child(shape_node)
+	parent.add_child(body)
+
+func _add_static_cylinder_collision(parent: Node3D, radius: float, height: float, pos: Vector3, node_name: String) -> void:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.collision_layer = 1
+	body.collision_mask = 0
+	var shape_node := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = radius
+	shape.height = height
+	shape_node.shape = shape
+	shape_node.position = pos
+	body.add_child(shape_node)
+	parent.add_child(body)
 
 func _material(color: Color) -> StandardMaterial3D:
 	var key := color.to_html()
