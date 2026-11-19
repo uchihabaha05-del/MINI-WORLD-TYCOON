@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Milestone 34 — traffic, storefront and intersection detail**
+- Added correctly oriented wheels with continuous spin animation on moving cars.
+- Added front/rear bumpers, grille, side mirrors, roof glass, headlights and rear lamps.
+- Added a striped MINI MARKET canopy, entrance handle and window display props.
+- Added four emissive traffic-signal assemblies at the central crossing without costly real-time point lights.
+- Traffic remains visual-only and uses lightweight route tweens for mobile.
+
+## Previous milestone
+
 **Milestone 33 — collision-aware city and camera-relative movement**
 - Added physical building collision volumes to the MINI MARKET and generated city buildings, so the player can no longer walk through their walls.
 - Added trunk collision to city trees while leaving their foliage as visual geometry.
@@ -240,11 +249,11 @@ The environment is generated from lightweight Godot meshes. It is a visual found
 
 ## Next milestones
 
-1. Player character and mobile touch controls
-2. Interactive shop, shelves and stockable products
-3. Customer spawning and navigation
-4. Checkout, income and in-game currency
-5. Shop upgrades, expansion and local save data
-6. Android performance pass and export
+1. Improve road behavior and traffic interactions
+2. Add richer shop and city interaction details
+3. Improve crowd navigation and pedestrian crossings
+4. Expand tycoon management feedback and usability
+5. Android performance pass and device validation
+6. Android export after the game systems are complete
 
 Target: Android first, iOS later.
