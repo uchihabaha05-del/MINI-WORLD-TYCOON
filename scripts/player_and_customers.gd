@@ -43,8 +43,8 @@ func _physics_process(delta: float) -> void:
 	player.velocity.z = direction.y * PLAYER_SPEED
 	player.velocity.y = 0.0
 	player.move_and_slide()
-	player.global_position.x = clampf(player.global_position.x, -52.0, 52.0)
-	player.global_position.z = clampf(player.global_position.z, -52.0, 52.0)
+	player.global_position.x = clampf(player.global_position.x, -104.0, 104.0)
+	player.global_position.z = clampf(player.global_position.z, -104.0, 104.0)
 	if direction.length() > 0.08:
 		player.rotation.y = atan2(direction.x, direction.y)
 	if camera_rig:
