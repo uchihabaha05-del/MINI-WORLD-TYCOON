@@ -84,16 +84,11 @@ func _process_city_budget() -> void:
 		_refresh_finance()
 		return
 	var plots: Array = manager.get("plots")
-	var taxable_income := 0
 	var building_count := 0
 	for plot in plots:
-		var building_type := String(plot.get("building", ""))
-		if building_type.is_empty():
-			continue
-		building_count += 1
-		if manager.get("BUILDINGS").has(building_type):
-			var definition: Dictionary = manager.get("BUILDINGS")[building_type]
-			taxable_income += int(definition.get("income", 0)) * int(plot.get("level", 1))
+		if not String(plot.get("building", "")).is_empty():
+			building_count += 1
+	var taxable_income := int(manager.call("get_taxable_business_income"))
 	var tax_amount := int(round(float(taxable_income) * float(tax_rate) / 100.0))
 	var population_count := 36
 	if population_system != null:
