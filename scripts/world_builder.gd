@@ -103,8 +103,8 @@ func _build_shop() -> void:
 		_box(shop, Vector3(0.12, 3.9, 0.2), Vector3(x + 1.48, 2.7, 6.12), Color("#f7f0e3"), "WindowFrame")
 	_box(shop, Vector3(2.2, 4.0, 0.22), Vector3(0, 2.7, 6.18), Color("#79b7c9"), "EntranceDoor")
 
-	var sign := Label3D.new()
-	sign.name = "ShopSign"
+	var building_sign := Label3D.new()
+	building_sign.name = "ShopSign"
 	sign.text = "MINI MARKET"
 	sign.font_size = 64
 	sign.pixel_size = 0.012
@@ -328,7 +328,7 @@ func _material(color: Color) -> StandardMaterial3D:
 func _build_outer_districts() -> void:
 	# Two additional ring roads open the map into a larger four-district city.
 	for axis in [-1.0, 1.0]:
-		var road_offset := axis * 66.0
+		var road_offset: float = float(axis) * 66.0
 		_box(self, Vector3(220, 0.14, 7), Vector3(0, 0.025, road_offset), ROAD, "OuterDistrictRoad")
 		_box(self, Vector3(7, 0.14, 220), Vector3(road_offset, 0.025, 0), ROAD, "OuterDistrictRoad")
 		for side in [-1.0, 1.0]:
