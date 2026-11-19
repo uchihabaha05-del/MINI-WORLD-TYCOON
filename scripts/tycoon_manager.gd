@@ -363,6 +363,8 @@ func _refresh_ui() -> void:
 		restaurant_button.visible = false
 		workshop_button.visible = false
 		upgrade_button.visible = false
+		staff_label.visible = false
+		hire_worker_button.visible = false
 		return
 
 	var plot: Dictionary = plots[selected_plot]
