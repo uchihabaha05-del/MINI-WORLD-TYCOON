@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_Floor"]
+size = Vector3(18, 0.3, 14)
+
+[sub_resource type="BoxShape3D" id="BoxShape_Floor"]
+size = Vector3(18, 0.3, 14)
+
+[sub_resource type="StandardMaterial3D" id="Material_Floor"]
+albedo_color = Color(0.78, 0.73, 0.62, 1)
+roughness = 1.0
+
+[sub_resource type="Environment" id="Environment_Main"]
+background_mode = 1
+background_color = Color(0.49, 0.72, 0.91, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.82, 0.86, 1, 1)
+ambient_light_energy = 0.7
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_Main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.8, -0.55, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 13, 11, 16)
+current = true
+fov = 55.0
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.15, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_Floor")
+surface_material_override/0 = SubResource("Material_Floor")
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape_Floor")
+
+[node name="ShopPlaceholder" type="Node3D" parent="."]
