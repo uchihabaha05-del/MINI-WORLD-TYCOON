@@ -15,6 +15,7 @@ var manager: Node
 
 func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
+	_load_stats()
 	_create_rivals()
 	_create_hud()
 	_refresh_hud()
@@ -87,6 +88,7 @@ func record_rival_visit(rival_id: int) -> void:
 			rivals[i]["visits"] = int(rivals[i]["visits"]) + 1
 			total_rival_visits += 1
 			break
+	_save_stats()
 	_refresh_hud()
 
 func get_district_rating() -> int:
@@ -104,6 +106,23 @@ func get_district_rating() -> int:
 		competitor_strength += int(rival["appeal"])
 	var pressure := int(float(competitor_strength) / float(maxi(1, rivals.size())))
 	return clampi(50 + average / 2 - pressure / 3 + mini(15, player_businesses * 3), 0, 100)
+
+func _save_stats() -> void:
+	var config := ConfigFile.new()
+	config.set_value("market", "total_rival_visits", total_rival_visits)
+	for rival in rivals:
+		config.set_value("rivals", "visits_%d" % int(rival["id"]), int(rival["visits"]))
+	config.save("user://rival_market.cfg")
+
+func _load_stats() -> void:
+	var config := ConfigFile.new()
+	if config.load("user://rival_market.cfg") != OK:
+		return
+	total_rival_visits = maxi(0, int(config.get_value("market", "total_rival_visits", 0)))
+	for i in range(RIVAL_DATA.size()):
+		var rival: Dictionary = RIVAL_DATA[i].duplicate(true)
+		rival["visits"] = maxi(0, int(config.get_value("rivals", "visits_%d" % int(rival["id"]), 0)))
+		rivals.append(rival)
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
