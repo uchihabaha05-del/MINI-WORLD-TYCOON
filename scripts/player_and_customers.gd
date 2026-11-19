@@ -13,8 +13,10 @@ var customer_timer: Timer
 var customer_count := 0
 var customer_label: Label
 var joystick_hint: Label
+var store_system: Node
 
 func _ready() -> void:
+	store_system = get_tree().current_scene.get_node_or_null("StoreGameplay")
 	_create_player()
 	_create_controls()
 	_create_customer_counter()
@@ -227,9 +229,14 @@ func _walk_customer(customer: Node3D, path: Array) -> void:
 	for point in path:
 		var destination: Vector3 = point
 		tween.tween_property(customer, "global_position", destination, 2.8)
+	tween.tween_callback(_serve_customer)
 	tween.tween_interval(2.0)
 	tween.tween_property(customer, "global_position", Vector3(-15.0, 0.0, 2.0), 3.0)
 	tween.tween_callback(customer.queue_free)
+
+func _serve_customer() -> void:
+	if store_system and store_system.has_method("serve_customer"):
+		store_system.call("serve_customer")
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
