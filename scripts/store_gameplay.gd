@@ -104,11 +104,15 @@ func _create_shop_interface() -> void:
 	panel.offset_left = -300
 	panel.offset_right = -14
 	panel.offset_top = 14
-	panel.offset_bottom = 455
+	panel.offset_bottom = -14
 	layer.add_child(panel)
 
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(scroll)
 	var content := VBoxContainer.new()
-	panel.add_child(content)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
 
 	var title := Label.new()
 	title.text = "🏪 MINI MARKET"
