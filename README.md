@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 19 — business appeal and city demand**
+- Each commercial plot has an appeal score from 0 to 100, saved independently.
+- Marketing raises appeal by 10 points for a fee of 120 coins plus 20 coins per building level.
+- Customer destination selection is weighted: businesses with higher appeal receive a larger share of visits.
+- Service revenue at commercial businesses is adjusted by both appeal and city happiness.
+- City happiness is exposed to the demand system; apartment buildings remain residential.
 **Milestone 18 — customers visit city businesses**
 - Customer destinations are selected from the MINI MARKET and owned commercial plots.
 - Customers travel to built shops, cafes, restaurants and workshops; apartment buildings are residential and are not treated as commercial destinations.
