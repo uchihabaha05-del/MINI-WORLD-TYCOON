@@ -51,6 +51,7 @@ func _ready() -> void:
 		if not String(plots[i]["building"]).is_empty():
 			_spawn_building(i)
 	_create_interface()
+	_check_quests()
 	_refresh_all_plots()
 	_refresh_ui()
 	_start_income_timer()
@@ -391,7 +392,6 @@ func _refresh_all_plots() -> void:
 		pad.material_override = _make_material(color)
 
 func _refresh_ui() -> void:
-	cash_label.text = "💰  Мои монетки: %d" % cash
 	var business_count := 0
 	var business_income := 20
 	for business_plot in plots:
@@ -401,6 +401,7 @@ func _refresh_ui() -> void:
 			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
 	business_summary_label.text = "Зданий: %d  •  Заработок: %d монет / 10 сек." % [business_count, business_income]
 	_update_city_progress(business_count)
+	cash_label.text = "💰  Мои монетки: %d" % cash
 	_update_mission()
 	_update_quest_text()
 	if status_label.text.is_empty():
