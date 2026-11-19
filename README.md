@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 8 — employee hiring and automatic restocking**
+- Added a staff hire action costing 350 coins.
+- A hired employee is paid 15 coins every 10 seconds; if the business cannot cover payroll, the salary is not deducted.
+- The employee checks shelves every 12 seconds and buys one unit of any product whose stock is below two, if funds allow.
+- Inventory and employee status are saved locally and restored when the game starts.
+- Manual restocking remains available in batches of five.
+
 **Milestone 7 — checkout and customer-driven sales**
 - Added a checkout counter, cash register, cashier character and three queue markers.
 - Moved the product shelves inside the MINI MARKET building.
