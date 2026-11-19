@@ -17,11 +17,13 @@ var customer_label: Label
 var joystick_hint: Label
 var store_system: Node
 var tycoon_manager: Node
+var rival_system: Node
 var visits_by_business := {"MINI MARKET": 0, "Кафе": 0, "Ресторан": 0, "Мастерская": 0, "Магазин": 0}
 
 func _ready() -> void:
 	store_system = get_tree().current_scene.get_node_or_null("StoreGameplay")
 	tycoon_manager = get_tree().current_scene.get_node_or_null("TycoonManager")
+	rival_system = get_tree().current_scene.get_node_or_null("RivalBusinesses")
 	_create_player()
 	_create_controls()
 	_create_customer_counter()
@@ -227,7 +229,7 @@ func _spawn_customer() -> void:
 	var destination := _choose_business_destination()
 	var target: Vector3 = destination["position"]
 	var route := [spawn_position, Vector3(target.x, 0.0, spawn_position.z), target]
-	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position)
+	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position, bool(destination.get("rival", false)), int(destination.get("rival_id", -1)), int(destination.get("plot_id", -1)))
 
 func _choose_business_destination() -> Dictionary:
 	var destinations: Array[Dictionary] = [
@@ -251,12 +253,17 @@ func _choose_business_destination() -> Dictionary:
 			elif building == "Кафе":
 				spend = 16
 			destinations.append({"business": building, "position": entrance, "spend": spend, "plot_id": int(plot["id"])})
+	if rival_system != null and rival_system.has_method("get_rival_destinations"):
+		for rival_destination in rival_system.call("get_rival_destinations"):
+			destinations.append(rival_destination)
 	var total_weight := 0.0
 	for destination in destinations:
 		var weight := 45.0
-		if String(destination["business"]) != "MINI MARKET":
+		if bool(destination.get("rival", false)):
+			weight = float(destination.get("weight", 50.0))
+		elif String(destination["business"]) != "MINI MARKET":
 			var plot_id := int(destination.get("plot_id", -1))
-			var appeal = tycoon_manager.call("get_business_appeal", plot_id) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
+			var appeal := int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
 			weight = 10.0 + float(appeal)
 		destination["weight"] = weight
 		total_weight += weight
@@ -267,7 +274,7 @@ func _choose_business_destination() -> Dictionary:
 			return destination
 	return destinations[0]
 
-func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3) -> void:
+func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3, is_rival: bool, rival_id: int, plot_id: int) -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_LINEAR)
 	tween.set_ease(Tween.EASE_IN_OUT)
@@ -275,16 +282,20 @@ func _walk_customer(customer: Node3D, path: Array, business: String, spend: int,
 		var destination: Vector3 = point
 		var travel_time := maxf(1.2, customer.global_position.distance_to(destination) / 4.0)
 		tween.tween_property(customer, "global_position", destination, travel_time)
-	tween.tween_callback(_serve_customer.bind(business, spend))
+	tween.tween_callback(_serve_customer.bind(business, spend, is_rival, rival_id, plot_id))
 	tween.tween_interval(2.0)
 	tween.tween_property(customer, "global_position", spawn_position, 3.0)
 	tween.tween_callback(_customer_left.bind(customer))
 
-func _serve_customer(business: String, spend: int) -> void:
+func _serve_customer(business: String, spend: int, is_rival: bool = false, rival_id: int = -1, plot_id: int = -1) -> void:
 	if not visits_by_business.has(business):
 		visits_by_business[business] = 0
 	visits_by_business[business] = int(visits_by_business[business]) + 1
 	_refresh_customer_label()
+	if is_rival:
+		if rival_system != null and rival_system.has_method("record_rival_visit"):
+			rival_system.call("record_rival_visit", rival_id)
+		return
 	if business == "MINI MARKET":
 		if store_system and store_system.has_method("serve_customer"):
 			store_system.call("serve_customer")
@@ -296,11 +307,8 @@ func _serve_customer(business: String, spend: int) -> void:
 	if city_life and city_life.has_method("get_happiness"):
 		happiness_factor = 0.7 + float(city_life.call("get_happiness")) / 200.0
 	var appeal_factor := 1.0
-	if tycoon_manager.has_method("get_business_appeal"):
-		for plot in tycoon_manager.get("plots"):
-			if String(plot.get("building", "")) == business:
-				appeal_factor = 0.75 + float(tycoon_manager.call("get_business_appeal", int(plot["id"]))) / 400.0
-				break
+	if plot_id >= 0 and tycoon_manager.has_method("get_business_appeal"):
+		appeal_factor = 0.75 + float(tycoon_manager.call("get_business_appeal", plot_id)) / 400.0
 	var revenue := roundi(float(spend) * happiness_factor * appeal_factor)
 	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + revenue)
 	tycoon_manager.call("_save_game")
