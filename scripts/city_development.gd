@@ -33,6 +33,9 @@ func _ready() -> void:
 	_load_projects()
 	_create_hud()
 	_rebuild_projects()
+	for project_id in range(completed.size()):
+		if completed[project_id]:
+			_build_project_visual(project_id)
 	_apply_bonuses()
 	_refresh_ui()
 	ui_timer = Timer.new()
