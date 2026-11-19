@@ -7,6 +7,11 @@ const PRODUCTS := [
 	{"name": "Снэки", "buy": 25, "sell": 45, "color": Color("#d77d68")}
 ]
 const RESTOCK_AMOUNT := 5
+const EMPLOYEE_HIRE_COST := 350
+const EMPLOYEE_SALARY := 15
+const PAYROLL_INTERVAL := 10.0
+const AUTO_RESTOCK_INTERVAL := 12.0
+const AUTO_RESTOCK_THRESHOLD := 2
 
 var manager: Node
 var stock: Array[int] = [5, 5, 5]
@@ -15,12 +20,21 @@ var sales_label: Label
 var total_sales := 0
 var total_profit := 0
 var rng := RandomNumberGenerator.new()
+var employee_hired := false
+var employee_label: Label
+var hire_button: Button
+var payroll_timer: Timer
+var auto_restock_timer: Timer
+var payroll_paid_total := 0
+var auto_restocked_total := 0
 
 func _ready() -> void:
 	rng.randomize()
 	manager = get_parent().get_node_or_null("TycoonManager")
+	_load_shop_state()
 	_build_shelves()
 	_create_shop_interface()
+	_start_staff_system()
 	_refresh_shop_ui()
 
 func _build_shelves() -> void:
@@ -86,7 +100,7 @@ func _create_shop_interface() -> void:
 	panel.offset_left = -300
 	panel.offset_right = -14
 	panel.offset_top = 14
-	panel.offset_bottom = 250
+	panel.offset_bottom = 365
 	layer.add_child(panel)
 
 	var content := VBoxContainer.new()
@@ -100,6 +114,12 @@ func _create_shop_interface() -> void:
 	sales_label = Label.new()
 	sales_label.text = "Продажи: 0  •  Прибыль: 0"
 	content.add_child(sales_label)
+
+	employee_label = Label.new()
+	content.add_child(employee_label)
+	hire_button = Button.new()
+	hire_button.pressed.connect(_hire_employee)
+	content.add_child(hire_button)
 
 	for i in range(PRODUCTS.size()):
 		var row := HBoxContainer.new()
@@ -123,6 +143,7 @@ func _restock_product(product_id: int) -> void:
 		return
 	manager.set("cash", int(manager.get("cash")) - cost)
 	stock[product_id] += RESTOCK_AMOUNT
+	_save_shop_state()
 	manager.call("_save_game")
 	manager.call("_refresh_ui")
 	_refresh_shop_ui()
@@ -183,6 +204,85 @@ func serve_customer() -> void:
 	if shelf:
 		_update_shelf_products(shelf, product_id)
 
+
+func _hire_employee() -> void:
+	if employee_hired or manager == null:
+		return
+	if int(manager.get("cash")) < EMPLOYEE_HIRE_COST:
+		employee_label.text = "Недостаточно монет для найма"
+		return
+	manager.set("cash", int(manager.get("cash")) - EMPLOYEE_HIRE_COST)
+	employee_hired = true
+	_save_shop_state()
+	manager.call("_save_game")
+	manager.call("_refresh_ui")
+	_refresh_shop_ui()
+
+func _start_staff_system() -> void:
+	payroll_timer = Timer.new()
+	payroll_timer.wait_time = PAYROLL_INTERVAL
+	payroll_timer.autostart = true
+	payroll_timer.timeout.connect(_payroll_tick)
+	add_child(payroll_timer)
+	auto_restock_timer = Timer.new()
+	auto_restock_timer.wait_time = AUTO_RESTOCK_INTERVAL
+	auto_restock_timer.autostart = true
+	auto_restock_timer.timeout.connect(_auto_restock_tick)
+	add_child(auto_restock_timer)
+
+func _payroll_tick() -> void:
+	if not employee_hired or manager == null:
+		return
+	var balance := int(manager.get("cash"))
+	if balance < EMPLOYEE_SALARY:
+		employee_label.text = "Сотрудник ожидает зарплату: %d" % EMPLOYEE_SALARY
+		return
+	manager.set("cash", balance - EMPLOYEE_SALARY)
+	payroll_paid_total += EMPLOYEE_SALARY
+	_save_shop_state()
+	manager.call("_save_game")
+	manager.call("_refresh_ui")
+	_refresh_shop_ui()
+
+func _auto_restock_tick() -> void:
+	if not employee_hired or manager == null:
+		return
+	var balance := int(manager.get("cash"))
+	for i in range(stock.size()):
+		if stock[i] < AUTO_RESTOCK_THRESHOLD:
+			var unit_cost := int(PRODUCTS[i]["buy"])
+			if balance >= unit_cost:
+				balance -= unit_cost
+				stock[i] += 1
+				auto_restocked_total += 1
+				var shelf := get_node_or_null("ProductShelf_%d" % i) as Node3D
+				if shelf:
+					_update_shelf_products(shelf, i)
+	manager.set("cash", balance)
+	_save_shop_state()
+	manager.call("_save_game")
+	manager.call("_refresh_ui")
+	_refresh_shop_ui()
+
+func _save_shop_state() -> void:
+	var config := ConfigFile.new()
+	config.set_value("staff", "employee_hired", employee_hired)
+	config.set_value("staff", "payroll_paid_total", payroll_paid_total)
+	config.set_value("staff", "auto_restocked_total", auto_restocked_total)
+	for i in range(stock.size()):
+		config.set_value("inventory", "stock_%d" % i, stock[i])
+	config.save("user://shop_state.cfg")
+
+func _load_shop_state() -> void:
+	var config := ConfigFile.new()
+	if config.load("user://shop_state.cfg") != OK:
+		return
+	employee_hired = bool(config.get_value("staff", "employee_hired", false))
+	payroll_paid_total = int(config.get_value("staff", "payroll_paid_total", 0))
+	auto_restocked_total = int(config.get_value("staff", "auto_restocked_total", 0))
+	for i in range(stock.size()):
+		stock[i] = maxi(0, int(config.get_value("inventory", "stock_%d" % i, stock[i])))
+
 func _box(size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
@@ -217,6 +317,14 @@ func _refresh_shop_ui() -> void:
 	for i in range(stock_labels.size()):
 		stock_labels[i].text = "%s: %d шт." % [PRODUCTS[i]["name"], stock[i]]
 	sales_label.text = "Продажи: %d  •  Прибыль: %d" % [total_sales, total_profit]
+	if employee_hired:
+		employee_label.text = "Сотрудник нанят • зарплата %d / 10 сек. • пополнено: %d" % [EMPLOYEE_SALARY, auto_restocked_total]
+		hire_button.text = "Сотрудник работает"
+		hire_button.disabled = true
+	else:
+		employee_label.text = "Персонал: нет • найм: %d монет" % EMPLOYEE_HIRE_COST
+		hire_button.text = "Нанять сотрудника — %d" % EMPLOYEE_HIRE_COST
+		hire_button.disabled = manager == null or int(manager.get("cash")) < EMPLOYEE_HIRE_COST
 
 func _mat(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
