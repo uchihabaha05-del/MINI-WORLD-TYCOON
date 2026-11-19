@@ -65,9 +65,10 @@ func _build_rival_shop(data: Dictionary) -> void:
 func get_rival_destinations() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for rival in rivals:
+		var rival_position: Vector3 = rival["position"]
 		result.append({
 			"business": String(rival["type"]),
-			"position": (rival["position"] as Vector3) + Vector3(0, 0, 5.5),
+			"position": rival_position + Vector3(0, 0, 5.5),
 			"spend": _rival_spend(String(rival["type"])),
 			"rival": true,
 			"rival_id": int(rival["id"]),
