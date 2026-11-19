@@ -136,8 +136,8 @@ func _refresh_hud() -> void:
 	for value in connected_plots:
 		if value:
 			connected_count += 1
-	hud_label.text = "Подключено участков: %d/4\nЭлектричество: %d\nВода: %d\nВсего за %d сек.: %d\n%s" % [
-		connected_count, electricity_cost, water_cost, int(TICK_SECONDS), last_total_cost, utility_status
+	hud_label.text = "Подключено участков: %d/%d\nЭлектричество: %d\nВода: %d\nВсего за %d сек.: %d\n%s" % [
+		connected_count, connected_plots.size(), electricity_cost, water_cost, int(TICK_SECONDS), last_total_cost, utility_status
 	]
 
 func _save_state() -> void:
