@@ -9,6 +9,7 @@ const RIVAL_DATA := [
 ]
 var rivals: Array[Dictionary] = []
 var total_rival_visits := 0
+var saved_rival_visits: Dictionary = {}
 var rival_label: Label
 var district_label: Label
 var manager: Node
@@ -23,7 +24,7 @@ func _ready() -> void:
 func _create_rivals() -> void:
 	for data in RIVAL_DATA:
 		var rival: Dictionary = data.duplicate(true)
-		rival["visits"] = 0
+		rival["visits"] = int(saved_rival_visits.get(int(rival["id"]), 0))
 		rivals.append(rival)
 		_build_rival_shop(rival)
 
@@ -119,10 +120,9 @@ func _load_stats() -> void:
 	if config.load("user://rival_market.cfg") != OK:
 		return
 	total_rival_visits = maxi(0, int(config.get_value("market", "total_rival_visits", 0)))
-	for i in range(RIVAL_DATA.size()):
-		var rival: Dictionary = RIVAL_DATA[i].duplicate(true)
-		rival["visits"] = maxi(0, int(config.get_value("rivals", "visits_%d" % int(rival["id"]), 0)))
-		rivals.append(rival)
+	for data in RIVAL_DATA:
+		var rival_id := int(data["id"])
+		saved_rival_visits[rival_id] = maxi(0, int(config.get_value("rivals", "visits_%d" % rival_id, 0)))
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
