@@ -43,6 +43,8 @@ var staff_label: Label
 var appeal_label: Label
 var marketing_button: Button
 var income_timer: Timer
+var city_dashboard_open := false
+var city_dashboard_button: Button
 
 func _ready() -> void:
 	_create_plots()
@@ -142,18 +144,28 @@ func _create_interface() -> void:
 	business_summary_label.add_theme_font_size_override("font_size", 14)
 	top_box.add_child(business_summary_label)
 	mission_label = Label.new()
-	mission_label.custom_minimum_size = Vector2(285, 48)
+	mission_label = Label.new()
 	mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	mission_label.add_theme_font_size_override("font_size", 15)
-	top_box.add_child(mission_label)
+	mission_label.add_theme_font_size_override("font_size", 14)
 	quest_label = Label.new()
-	quest_label.custom_minimum_size = Vector2(285, 70)
 	quest_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	quest_label.add_theme_font_size_override("font_size", 14)
-	top_box.add_child(quest_label)
+	quest_label.add_theme_font_size_override("font_size", 13)
 	level_label = Label.new()
-	level_label.add_theme_font_size_override("font_size", 14)
-	top_box.add_child(level_label)
+	level_label.add_theme_font_size_override("font_size", 13)
+	var dashboard_row := HBoxContainer.new()
+	dashboard_row.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	dashboard_row.anchor_left = 1.0
+	dashboard_row.anchor_right = 1.0
+	dashboard_row.offset_left = -174
+	dashboard_row.offset_right = -18
+	dashboard_row.offset_top = 18
+	dashboard_row.offset_bottom = 62
+	root.add_child(dashboard_row)
+	city_dashboard_button = Button.new()
+	city_dashboard_button.text = "ГОРОД  +"
+	city_dashboard_button.custom_minimum_size = Vector2(150, 42)
+	city_dashboard_button.pressed.connect(_toggle_city_dashboard)
+	dashboard_row.add_child(city_dashboard_button)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.0
@@ -168,6 +180,9 @@ func _create_interface() -> void:
 
 	var content := VBoxContainer.new()
 	panel.add_child(content)
+	content.add_child(mission_label)
+	content.add_child(quest_label)
+	content.add_child(level_label)
 	plot_title = Label.new()
 	plot_title.add_theme_font_size_override("font_size", 22)
 	content.add_child(plot_title)
@@ -212,6 +227,13 @@ func _create_interface() -> void:
 	marketing_button = Button.new()
 	marketing_button.pressed.connect(_promote_selected_business)
 	content.add_child(marketing_button)
+
+func _toggle_city_dashboard() -> void:
+	city_dashboard_open = not city_dashboard_open
+	for dashboard_panel in get_tree().get_nodes_in_group("city_dashboard_panels"):
+		if is_instance_valid(dashboard_panel):
+			dashboard_panel.visible = city_dashboard_open
+	city_dashboard_button.text = "ГОРОД  −" if city_dashboard_open else "ГОРОД  +"
 
 func _make_build_button(caption: String, building_type: String) -> Button:
 	var button := Button.new()
