@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 9 — visitor population and crowd control**
+- The city now tracks customers currently walking through the scene separately from the lifetime visitor total.
+- A maximum of six active customers prevents unbounded scene growth on mobile.
+- New visitors pause spawning while the city is at capacity; the counter refreshes when customers leave.
+- Customers continue to walk to the MINI MARKET, trigger a stock-based sale, and then leave.
+
 **Milestone 8 — employee hiring and automatic restocking**
 - Added a staff hire action costing 350 coins.
 - A hired employee is paid 15 coins every 10 seconds; if the business cannot cover payroll, the salary is not deducted.
