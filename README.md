@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 22 — rival businesses and district competition**
+- Added four independent rival storefronts across the expanded city: CITY MART, URBAN CAFE, NORTH FOOD and QUICK FIX.
+- Customers now choose between player-owned businesses and rival destinations using appeal-weighted demand; visits to rivals do not credit the player's wallet.
+- Rival visitor totals and each competitor's visit count are tracked and saved in `user://rival_market.cfg`.
+- Added a business-district rating that responds to the player's number of commercial businesses, their average appeal and the strength of rival competitors.
+- Corrected customer service routing so each customer is served once after reaching the selected destination, and the correct owned plot's appeal affects its revenue.
+
 **Milestone 21 — municipal finance, taxes and city budget**
 - Added a configurable business tax rate from 0% to 20%, adjustable in 2-point steps.
 - Municipal tax revenue is calculated from the current passive income of owned businesses and credited to the shared city wallet every 30 seconds.
