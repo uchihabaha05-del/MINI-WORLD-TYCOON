@@ -27,6 +27,9 @@ var income_timer: Timer
 func _ready() -> void:
 	_create_plots()
 	_load_game()
+	for i in range(plots.size()):
+		if not String(plots[i]["building"]).is_empty():
+			_spawn_building(i)
 	_create_interface()
 	_refresh_all_plots()
 	_refresh_ui()
@@ -296,8 +299,6 @@ func _refresh_all_plots() -> void:
 		if i == selected_plot:
 			color = Color("#f2dc77")
 		pad.material_override = _make_material(color)
-		if not String(plot["building"]).is_empty():
-			_spawn_building(i)
 
 func _refresh_ui() -> void:
 	cash_label.text = "💰  %d монет" % cash
