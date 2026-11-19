@@ -53,7 +53,15 @@ func _create_plots() -> void:
 		Vector3(-43, 0.2, -43),
 		Vector3(43, 0.2, -43),
 		Vector3(-43, 0.2, 43),
-		Vector3(43, 0.2, 43)
+		Vector3(43, 0.2, 43),
+		Vector3(-78, 0.2, -43),
+		Vector3(78, 0.2, -43),
+		Vector3(-78, 0.2, 43),
+		Vector3(78, 0.2, 43),
+		Vector3(-43, 0.2, -78),
+		Vector3(43, 0.2, -78),
+		Vector3(-43, 0.2, 78),
+		Vector3(43, 0.2, 78)
 	]
 	for i in range(positions.size()):
 		var area := Area3D.new()
@@ -65,14 +73,14 @@ func _create_plots() -> void:
 
 		var collision := CollisionShape3D.new()
 		var shape := BoxShape3D.new()
-		shape.size = Vector3(14, 1.0, 14)
+		shape.size = Vector3(12, 1.0, 12)
 		collision.shape = shape
 		area.add_child(collision)
 
 		var pad := MeshInstance3D.new()
 		pad.name = "PlotSurface"
 		var pad_mesh := BoxMesh.new()
-		pad_mesh.size = Vector3(14, 0.18, 14)
+		pad_mesh.size = Vector3(12, 0.18, 12)
 		pad.mesh = pad_mesh
 		pad.position.y = -0.08
 		area.add_child(pad)
@@ -359,7 +367,7 @@ func _refresh_ui() -> void:
 		if not business_type.is_empty() and BUILDINGS.has(business_type):
 			business_count += 1
 			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
-	business_summary_label.text = "Предприятий: %d  •  Доход: %d / 10 сек." % [business_count, business_income]
+	business_summary_label.text = "Предприятий: %d  •  Доход: %d / 10 сек.  •  Участки: %d" % [business_count, business_income, plots.size()]
 	if status_label.text.is_empty():
 		status_label.text = "Ваш MINI MARKET приносит 20 за цикл"
 	if not _has_selection():
