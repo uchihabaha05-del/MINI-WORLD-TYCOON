@@ -43,7 +43,7 @@ func _create_hud() -> void:
 	panel.anchor_right = 0.0
 	panel.offset_left = 330
 	panel.offset_top = 18
-	panel.offset_right = 642
+	panel.offset_right = 620
 	panel.offset_bottom = 190
 	layer.add_child(panel)
 	var content := VBoxContainer.new()
