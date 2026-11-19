@@ -41,7 +41,7 @@ func _create_hud() -> void:
 	layer.layer = 7
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(330, 18)
+	panel.position = Vector2(650, 18)
 	panel.custom_minimum_size = Vector2(300, 86)
 	layer.add_child(panel)
 	var box := VBoxContainer.new()
@@ -83,7 +83,6 @@ func _finish_event() -> void:
 	var reward := int(active_event.get("reward", 0))
 	if manager != null:
 		manager.set("cash", int(manager.get("cash")) + reward)
-		manager.set("status_label", manager.get("status_label"))
 		var status: Label = manager.get("status_label") as Label
 		if status != null:
 			status.text = "🎊 Событие завершено! Награда: +%d монет!" % reward
