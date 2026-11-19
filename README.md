@@ -4,6 +4,18 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 14 — parking lots and occupancy**
+- Added eight marked parking bays alongside the outer streets.
+- Simulates cars arriving and leaving, with a maximum of six occupied spaces at a time.
+- Parked vehicles are generated with simple low-cost meshes.
+- Added live occupancy, arrival and departure counters.
+
+**Milestone 13 — public transport**
+- Added a four-stop city bus route and a procedural city bus.
+- Passenger queues fluctuate at stops; the bus boards up to three passengers per stop.
+- Each passenger pays a four-coin fare, credited to the shared city wallet.
+- Added a transport HUD for waiting passengers, total passengers carried and fare income.
+
 **Milestone 12 — city road traffic**
 - Added six lightweight procedural cars with bodywork, cabin, wheels and headlights.
 - Cars travel along the existing secondary east-west and north-south roads.
