@@ -100,8 +100,6 @@ func _physics_process(delta: float) -> void:
 		player.velocity.y -= GRAVITY * delta
 	elif player.velocity.y < 0.0:
 		player.velocity.y = 0.0
-	if Input.is_key_pressed(KEY_SPACE) and player.is_on_floor():
-		player.velocity.y = JUMP_VELOCITY
 	player.move_and_slide()
 	player.global_position.x = clampf(player.global_position.x, -104.0, 104.0)
 	player.global_position.z = clampf(player.global_position.z, -104.0, 104.0)
@@ -280,13 +278,15 @@ func _create_virtual_joystick(layer: CanvasLayer) -> void:
 	joystick_center = Vector2(104, screen.y - 112)
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		_jump()
 	var screen := get_viewport().get_visible_rect().size
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			if joystick_touch_index == -1 and event.position.x < screen.x * 0.43 and event.position.y > screen.y * 0.55:
 				joystick_touch_index = event.index
 				_update_joystick(event.position)
-			elif camera_touch_index == -1 and event.position.x > screen.x * 0.48:
+			elif camera_touch_index == -1 and event.position.x > screen.x * 0.48 and event.position.y < screen.y - 210.0:
 				camera_touch_index = event.index
 				last_camera_touch = event.position
 		else:
