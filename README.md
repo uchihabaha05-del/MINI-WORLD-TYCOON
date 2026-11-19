@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 18 — customers visit city businesses**
+- Customer destinations are selected from the MINI MARKET and owned commercial plots.
+- Customers travel to built shops, cafes, restaurants and workshops; apartment buildings are residential and are not treated as commercial destinations.
+- Visits to MINI MARKET continue to trigger stock-based retail sales.
+- Other commercial visits credit a small service/transaction amount to the shared city wallet (cafe 16, restaurant 28, workshop 24, shop 18 coins).
+- Added live visitor counters by business type while retaining the six-customer active limit.
+
 **Milestone 17 — workforce for owned businesses**
 - Each owned commercial plot can hire its own workers for 250 coins per hire.
 - Each worker costs 8 coins in payroll per 10-second income cycle and adds 12 coins to that business's cycle income when the total payroll is affordable.
