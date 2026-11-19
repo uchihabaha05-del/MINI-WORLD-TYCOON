@@ -7,10 +7,20 @@ const DRIVE_TIME := 34.0
 
 var traffic_label: Label
 var vehicles: Array[Node3D] = []
+var wheel_spin_speed := 5.5
 
 func _ready() -> void:
 	_create_hud()
 	_spawn_traffic()
+
+func _process(delta: float) -> void:
+	for vehicle in vehicles:
+		if not is_instance_valid(vehicle):
+			continue
+		for wheel_name in ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"]:
+			var wheel := vehicle.get_node_or_null(wheel_name) as MeshInstance3D
+			if wheel != null:
+				wheel.rotation.y += delta * wheel_spin_speed
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -66,12 +76,19 @@ func _make_vehicle(index: int) -> Node3D:
 			mesh.bottom_radius = 0.34
 			mesh.height = 0.16
 			wheel.mesh = mesh
-			wheel.rotation_degrees.z = 90
+			wheel.name = ("Wheel_F" if x > 0.0 else "Wheel_R") + ("L" if z < 0.0 else "R")
+			wheel.rotation_degrees.x = 90
 			wheel.position = Vector3(x, 0.35, z)
 			wheel.material_override = _mat(Color("#20262b"))
 			vehicle.add_child(wheel)
+	_box(vehicle, Vector3(0.18, 0.24, 1.5), Vector3(1.68, 0.62, 0), Color("#aeb7bb"), "FrontBumper")
+	_box(vehicle, Vector3(0.18, 0.22, 1.5), Vector3(-1.68, 0.62, 0), Color("#aeb7bb"), "RearBumper")
+	_box(vehicle, Vector3(0.035, 0.32, 0.58), Vector3(1.73, 0.78, 0), Color("#303b42"), "FrontGrille")
 	for z in [-0.52, 0.52]:
 		_box(vehicle, Vector3(0.12, 0.22, 0.12), Vector3(1.62, 0.78, z), Color("#fff1b0"), "Headlight")
+		_box(vehicle, Vector3(0.12, 0.2, 0.12), Vector3(-1.62, 0.78, z), Color("#d94b46"), "RearLight")
+		_box(vehicle, Vector3(0.42, 0.12, 0.18), Vector3(0.05, 1.65, z * 1.48), Color("#28343b"), "SideMirror")
+	_box(vehicle, Vector3(1.0, 0.05, 1.1), Vector3(-0.15, 1.81, 0), Color("#26333a"), "RoofGlass")
 	return vehicle
 
 func _drive_vehicle(vehicle: Node3D, vertical: bool, forward: bool) -> void:
