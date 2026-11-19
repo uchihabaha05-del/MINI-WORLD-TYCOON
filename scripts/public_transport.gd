@@ -35,7 +35,7 @@ func _create_hud() -> void:
 	layer.layer = 3
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(18, 265)
+	panel.position = Vector2(650, 292)
 	panel.custom_minimum_size = Vector2(290, 66)
 	layer.add_child(panel)
 	status_label = Label.new()
