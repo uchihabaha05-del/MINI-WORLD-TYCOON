@@ -1,9 +1,9 @@
 extends Node3D
 
 # MINI WORLD TYCOON — Milestone 12: lightweight road traffic.
-const TRAFFIC_COUNT := 6
-const ROAD_LIMIT := 49.0
-const DRIVE_TIME := 18.0
+const TRAFFIC_COUNT := 10
+const ROAD_LIMIT := 100.0
+const DRIVE_TIME := 34.0
 
 var traffic_label: Label
 var vehicles: Array[Node3D] = []
@@ -28,7 +28,15 @@ func _spawn_traffic() -> void:
 		var is_vertical := i >= 4
 		var lane := -1.35 if i % 2 == 0 else 1.35
 		var vehicle := _make_vehicle(i)
-		if is_vertical:
+		if i >= 6:
+			var outer_lane := -1.35 if i % 2 == 0 else 1.35
+			var outer_axis := 66.0 if i % 2 == 0 else -66.0
+			if i % 2 == 0:
+				vehicle.position = Vector3(-ROAD_LIMIT + float(i - 6) * 18.0, 0.0, outer_axis + outer_lane)
+			else:
+				vehicle.position = Vector3(outer_axis + outer_lane, 0.0, -ROAD_LIMIT + float(i - 6) * 18.0)
+			vehicle.rotation_degrees.y = 90.0 if i % 2 == 0 else 0.0
+		elif is_vertical:
 			vehicle.position = Vector3(lane, 0.0, -ROAD_LIMIT + float(i - 4) * 17.0)
 			vehicle.rotation_degrees.y = 90.0 if i % 2 == 0 else -90.0
 		else:
