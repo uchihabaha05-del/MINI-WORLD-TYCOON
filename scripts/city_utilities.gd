@@ -42,9 +42,9 @@ func _create_hud() -> void:
 	panel.anchor_left = 0.0
 	panel.anchor_right = 0.0
 	panel.offset_left = 330
-	panel.offset_top = 198
+	panel.offset_top = 18
 	panel.offset_right = 642
-	panel.offset_bottom = 338
+	panel.offset_bottom = 190
 	layer.add_child(panel)
 	var content := VBoxContainer.new()
 	panel.add_child(content)
@@ -56,7 +56,7 @@ func _create_hud() -> void:
 	hud_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(hud_label)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(280, 150)
+	scroll.custom_minimum_size = Vector2(280, 76)
 	content.add_child(scroll)
 	var plot_buttons := VBoxContainer.new()
 	scroll.add_child(plot_buttons)
