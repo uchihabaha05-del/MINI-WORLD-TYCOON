@@ -27,6 +27,9 @@ func _ready() -> void:
 	_build_outer_districts()
 	_build_traffic_lights()
 	_detail_shop_entrance()
+	_apply_visual_refresh()
+	_build_market_plaza()
+	_build_road_markings_upgrade()
 
 func _build_ground() -> void:
 	_box(self, Vector3(220, 0.5, 220), Vector3(0, -0.3, 0), GRASS, "CityGround")
@@ -427,3 +430,92 @@ func _build_traffic_lights() -> void:
 				signal_material.emission_energy_multiplier = 0.65
 				lamp.material_override = signal_material
 				signal_root.add_child(lamp)
+
+
+# VISUAL RESTART — replace the prototype blockout feel with a coherent modern town.
+func _apply_visual_refresh() -> void:
+	for child in get_children():
+		if not child is Node3D:
+			continue
+		if child.name == "PlayerShop" or child.name == "CentralPark" or child.name == "TrafficSignal":
+			continue
+		if child.name.begins_with("Apartments") or child.name.begins_with("NorthDistrict") or child.name.begins_with("SouthDistrict") or child.name in ["Bakery", "Cafe", "Office", "FlowerShop"]:
+			_add_architectural_finish(child as Node3D)
+	for node in find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := node as MeshInstance3D
+		if mesh_node == null:
+			continue
+		if mesh_node.name in ["FrontGlass", "SideGlass", "StoreWindow", "EntranceDoor"]:
+			var glass := StandardMaterial3D.new()
+			glass.albedo_color = Color("#477b91")
+			glass.metallic = 0.28
+			glass.roughness = 0.2
+			glass.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+			glass.emission_enabled = true
+			glass.emission = Color("#244858")
+			glass.emission_energy_multiplier = 0.12
+			mesh_node.material_override = glass
+		elif mesh_node.name == "LampHead":
+			var glow := StandardMaterial3D.new()
+			glow.albedo_color = Color("#ffe4a3")
+			glow.emission_enabled = true
+			glow.emission = Color("#ffc96e")
+			glow.emission_energy_multiplier = 0.8
+			mesh_node.material_override = glow
+
+func _add_architectural_finish(building: Node3D) -> void:
+	var body := building.get_node_or_null("BuildingBody") as MeshInstance3D
+	if body == null:
+		return
+	var size: Vector3 = (body.mesh as BoxMesh).size
+	var accent := Color("#f1e9db")
+	var dark := Color("#344b58")
+	# Strong vertical facade piers and a continuous upper cornice.
+	for x in [-size.x * 0.48, size.x * 0.48]:
+		_box(building, Vector3(0.32, size.y, 0.32), Vector3(x, size.y * 0.5, size.z * 0.5 + 0.2), accent, "FacadePier")
+	_box(building, Vector3(size.x + 0.8, 0.32, 0.48), Vector3(0, size.y - 0.18, size.z * 0.5 + 0.2), accent, "FacadeCornice")
+	# Ground-floor storefront bays and signage make each block legible at street level.
+	_box(building, Vector3(size.x * 0.62, 2.35, 0.18), Vector3(0, 1.35, size.z * 0.5 + 0.22), dark, "GroundFloorShopfront")
+	_box(building, Vector3(size.x * 0.68, 0.48, 0.28), Vector3(0, 2.85, size.z * 0.5 + 0.28), Color("#d9a66d"), "StorefrontCanopy")
+	# Rooftop plant equipment and vents break up the flat roof silhouette.
+	for i in range(2):
+		var rx := -size.x * 0.22 + float(i) * size.x * 0.44
+		_box(building, Vector3(1.5, 0.65, 1.2), Vector3(rx, size.y + 0.82, -size.z * 0.18), Color("#78858b"), "RooftopHVAC")
+		_box(building, Vector3(1.62, 0.12, 1.32), Vector3(rx, size.y + 1.2, -size.z * 0.18), Color("#c1c8c8"), "RooftopHVACCap")
+
+func _build_market_plaza() -> void:
+	var plaza := Node3D.new()
+	plaza.name = "MarketPlaza"
+	plaza.position = Vector3(-15, 0, -6.8)
+	add_child(plaza)
+	_box(plaza, Vector3(23, 0.16, 7.5), Vector3(0, 0.02, 0), Color("#c9c7bc"), "MarketStonePaving")
+	for x in [-9.0, -6.0, 6.0, 9.0]:
+		_box(plaza, Vector3(1.8, 0.42, 1.5), Vector3(x, 0.28, 1.8), Color("#8b684c"), "PlanterBox")
+		var shrub := MeshInstance3D.new()
+		var shrub_mesh := SphereMesh.new()
+		shrub_mesh.radius = 0.62
+		shrub_mesh.height = 0.9
+		shrub.mesh = shrub_mesh
+		shrub.position = Vector3(x, 0.92, 1.8)
+		shrub.material_override = _material(Color("#4e8b59"))
+		plaza.add_child(shrub)
+	for x in [-3.8, 3.8]:
+		_box(plaza, Vector3(2.6, 0.18, 0.55), Vector3(x, 0.42, 2.0), Color("#80583c"), "PlazaBench")
+		_box(plaza, Vector3(2.6, 0.12, 0.12), Vector3(x, 0.78, 2.22), Color("#d1b28a"), "BenchBack")
+	# A framed pedestrian entrance path leads directly to the market door.
+	for x in [-1.4, 1.4]:
+		_box(plaza, Vector3(0.12, 0.035, 5.6), Vector3(x, 0.12, -0.1), Color("#eee8d9"), "WalkwayEdge")
+
+func _build_road_markings_upgrade() -> void:
+	# Turn the broad road grid into clearly marked, modern streets.
+	for axis in [-1.0, 1.0]:
+		for z in [-30.0, 30.0, -66.0, 66.0]:
+			for side in [-1.0, 1.0]:
+				_box(self, Vector3(5.0, 0.035, 0.16), Vector3(axis * 10.0, 0.13, z + side * 2.0), Color("#e9e7dc"), "StopLine")
+		for x in [-30.0, 30.0, -66.0, 66.0]:
+			for side in [-1.0, 1.0]:
+				_box(self, Vector3(0.16, 0.035, 5.0), Vector3(x + side * 2.0, 0.13, axis * 10.0), Color("#e9e7dc"), "StopLine")
+	# Decorative lane arrows at the main intersection.
+	for p in [Vector3(-3.2, 0.15, -12), Vector3(3.2, 0.15, 12)]:
+		_box(self, Vector3(1.8, 0.035, 0.18), p, Color("#f5f2e8"), "LaneArrowStem")
+		_box(self, Vector3(0.18, 0.035, 1.0), p + Vector3(0, 0, -0.42), Color("#f5f2e8"), "LaneArrowHead")
