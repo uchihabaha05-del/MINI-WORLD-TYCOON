@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 17 — workforce for owned businesses**
+- Each owned commercial plot can hire its own workers for 250 coins per hire.
+- Each worker costs 8 coins in payroll per 10-second income cycle and adds 12 coins to that business's cycle income when the total payroll is affordable.
+- Worker capacity is two per building level; upgrading a building increases its staff capacity.
+- Staff counts are saved per plot and restored with the city save.
+- Apartments do not hire commercial workers; the existing MINI MARKET employee system remains separate.
+
 **Milestone 16 — expanded city businesses**
 - Added two new construction options: restaurant (1,100 coins, 125 income per cycle) and workshop (800 coins, 105 income per cycle).
 - Both businesses use the existing plot purchase, upgrade, save/load and passive-income systems.
