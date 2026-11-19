@@ -25,7 +25,7 @@ var business_summary_label: Label
 var mission_label: Label
 var tutorial_step: int = 0
 var stars: int = 0
-var quest_done: Array = [false, false, false, false, false]
+var quest_done: Array = [false, false, false, false, false, false, false, false]
 var quest_label: Label
 var level_label: Label
 var city_level: int = 1
@@ -478,6 +478,10 @@ func _check_quests() -> void:
 	var building_count := 0
 	var has_upgrade := false
 	var has_worker := false
+	var store: Node = get_parent().get_node_or_null("StoreGameplay")
+	var total_sales := int(store.get("total_sales")) if store != null else 0
+	var total_profit := int(store.get("total_profit")) if store != null else 0
+	var shop_employee := bool(store.get("employee_hired")) if store != null else false
 	for plot in plots:
 		if bool(plot.get("owned", false)):
 			owned_count += 1
@@ -492,9 +496,12 @@ func _check_quests() -> void:
 		building_count >= 1,
 		has_upgrade,
 		has_worker,
-		building_count >= 3
+		building_count >= 3,
+		total_sales >= 10,
+		total_profit >= 500,
+		shop_employee
 	]
-	var rewards: Array[int] = [100, 150, 200, 200, 350]
+	var rewards: Array[int] = [100, 150, 200, 200, 350, 250, 300, 250]
 	var changed := false
 	for i in range(quest_done.size()):
 		if not bool(quest_done[i]) and bool(conditions[i]):
@@ -512,7 +519,10 @@ func _update_quest_text() -> void:
 		"Построй первое здание",
 		"Улучши любое здание",
 		"Найми работника",
-		"Построй всего 3 здания"
+		"Построй всего 3 здания",
+		"Продай 10 товаров в магазине",
+		"Заработай 500 монет на продажах",
+		"Найми помощника в магазин"
 	]
 	var next_quest := -1
 	for i in range(quest_done.size()):
