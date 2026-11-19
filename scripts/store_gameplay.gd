@@ -197,6 +197,7 @@ func serve_customer() -> void:
 	manager.set("cash", int(manager.get("cash")) + sale)
 	total_sales += 1
 	total_profit += sale - cost
+	_save_shop_state()
 	manager.call("_save_game")
 	manager.call("_refresh_ui")
 	_refresh_shop_ui()
