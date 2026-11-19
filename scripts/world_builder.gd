@@ -127,7 +127,7 @@ func _build_park() -> void:
 	park.position = Vector3(16, 0, 43)
 	add_child(park)
 
-	_box(park, Vector3(28, 0.12, 19), Color("#86bd70"), Vector3.ZERO, "ParkGrass")
+	_box(park, Vector3(28, 0.12, 19), Vector3.ZERO, Color("#86bd70"), "ParkGrass")
 	_box(park, Vector3(24, 0.08, 2.2), SIDEWALK, Vector3(0, 0.1, 0), "ParkPath")
 	_box(park, Vector3(2.2, 0.08, 15), SIDEWALK, Vector3(0, 0.11, 0), "ParkPath")
 	for x in [-10.0, -4.0, 4.0, 10.0]:
