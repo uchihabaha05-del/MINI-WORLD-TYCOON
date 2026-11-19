@@ -17,6 +17,7 @@ var plots: Array = []
 var selected_plot: int = -1
 var cash_label: Label
 var status_label: Label
+var business_summary_label: Label
 var plot_title: Label
 var plot_info: Label
 var buy_button: Button
@@ -111,6 +112,9 @@ func _create_interface() -> void:
 	status_label = Label.new()
 	status_label.add_theme_font_size_override("font_size", 15)
 	top_box.add_child(status_label)
+	business_summary_label = Label.new()
+	business_summary_label.add_theme_font_size_override("font_size", 14)
+	top_box.add_child(business_summary_label)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.0
@@ -313,6 +317,14 @@ func _refresh_all_plots() -> void:
 
 func _refresh_ui() -> void:
 	cash_label.text = "💰  %d монет" % cash
+	var business_count := 0
+	var business_income := 20
+	for business_plot in plots:
+		var business_type := String(business_plot["building"])
+		if not business_type.is_empty() and BUILDINGS.has(business_type):
+			business_count += 1
+			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
+	business_summary_label.text = "Предприятий: %d  •  Доход: %d / 10 сек." % [business_count, business_income]
 	if status_label.text.is_empty():
 		status_label.text = "Ваш MINI MARKET приносит 20 за цикл"
 	if not _has_selection():
