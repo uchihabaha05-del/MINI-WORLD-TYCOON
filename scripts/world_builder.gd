@@ -12,7 +12,9 @@ const WALLS: Array[Color] = [
 	Color("#f0c9a5"), Color("#d6e0e7"), Color("#e8dcae"),
 	Color("#c9d9c0"), Color("#d9c8e8"), Color("#e8bdb8")
 ]
-const WINDOW := Color("#8fc7d9")
+const WINDOW := Color("#344b58")
+
+var _material_cache: Dictionary = {}
 
 func _ready() -> void:
 	_build_ground()
@@ -102,22 +104,53 @@ func _build_building(origin: Vector3, size: Vector3, wall_color: Color, building
 	building.position = origin
 	add_child(building)
 
+	# Main volume, roof cap and subtle facade bands.
 	_box(building, size, Vector3(0, size.y * 0.5, 0), wall_color, "BuildingBody")
-	_box(building, Vector3(size.x + 0.7, 0.55, size.z + 0.7), Vector3(0, size.y + 0.28, 0), roof_color, "FlatRoof")
+	_box(building, Vector3(size.x + 0.9, 0.55, size.z + 0.9), Vector3(0, size.y + 0.28, 0), roof_color, "FlatRoof")
+	_box(building, Vector3(size.x + 0.35, 0.28, 0.24), Vector3(0, 0.35, size.z * 0.5 + 0.12), Color("#f4eee3"), "FrontBaseTrim")
+	_box(building, Vector3(size.x + 0.35, 0.24, 0.24), Vector3(0, size.y - 0.55, size.z * 0.5 + 0.12), Color("#f4eee3"), "FrontTopTrim")
 
 	var floors := maxi(1, int(size.y / 3.2))
 	for floor_index in range(floors):
 		var y := 1.8 + float(floor_index) * 3.0
 		for x_index in range(3):
 			var x := -size.x * 0.3 + float(x_index) * size.x * 0.3
-			_box(building, Vector3(1.65, 1.35, 0.12), Vector3(x, y, size.z * 0.5 + 0.07), WINDOW, "FrontWindow")
-			_box(building, Vector3(0.12, 1.5, 0.16), Vector3(x + 0.88, y, size.z * 0.5 + 0.08), Color("#f5eadb"), "WindowFrame")
+			_box(building, Vector3(2.0, 1.55, 0.16), Vector3(x, y, size.z * 0.5 + 0.09), Color("#344b58"), "FrontGlass")
+			_box(building, Vector3(2.12, 0.12, 0.2), Vector3(x, y - 0.84, size.z * 0.5 + 0.1), Color("#f3eadc"), "WindowSill")
+			_box(building, Vector3(0.12, 1.72, 0.2), Vector3(x - 1.08, y, size.z * 0.5 + 0.1), Color("#f3eadc"), "WindowFrame")
+			_box(building, Vector3(0.12, 1.72, 0.2), Vector3(x + 1.08, y, size.z * 0.5 + 0.1), Color("#f3eadc"), "WindowFrame")
+
+			# Balconies make apartment blocks read differently from offices.
+			if building_name.begins_with("Apartments"):
+				_box(building, Vector3(2.45, 0.16, 1.0), Vector3(x, y - 0.92, size.z * 0.5 + 0.55), Color("#b9c4c7"), "BalconyFloor")
+				_box(building, Vector3(2.45, 0.12, 0.1), Vector3(x, y - 0.25, size.z * 0.5 + 1.0), Color("#e8ece9"), "BalconyRail")
+				for rail_x in [-1.0, -0.5, 0.0, 0.5, 1.0]:
+					_box(building, Vector3(0.055, 0.62, 0.055), Vector3(x + rail_x, y - 0.58, size.z * 0.5 + 1.0), Color("#e8ece9"), "BalconyBar")
+
+		# Recessed-looking side windows add depth to the street-facing side.
+		for side_index in range(2):
+			var side_z := -size.z * 0.22 + float(side_index) * size.z * 0.44
+			_box(building, Vector3(0.14, 1.45, 1.8), Vector3(size.x * 0.5 + 0.08, y, side_z), Color("#344b58"), "SideGlass")
+			_box(building, Vector3(0.18, 1.62, 0.12), Vector3(size.x * 0.5 + 0.1, y, side_z - 0.96), Color("#f3eadc"), "SideWindowFrame")
+			_box(building, Vector3(0.18, 1.62, 0.12), Vector3(size.x * 0.5 + 0.1, y, side_z + 0.96), Color("#f3eadc"), "SideWindowFrame")
+
+	# Roof parapet and small ventilation units.
+	for edge in [-1.0, 1.0]:
+		_box(building, Vector3(size.x + 0.2, 0.45, 0.22), Vector3(0, size.y + 0.72, edge * size.z * 0.5), Color("#e8e4dc"), "RoofParapet")
+		_box(building, Vector3(0.22, 0.45, size.z), Vector3(edge * size.x * 0.5, size.y + 0.72, 0), Color("#e8e4dc"), "RoofParapet")
+	_box(building, Vector3(2.0, 0.75, 1.5), Vector3(-size.x * 0.25, size.y + 0.95, -size.z * 0.18), Color("#aeb8bc"), "RoofVent")
+	_box(building, Vector3(1.4, 0.55, 1.2), Vector3(size.x * 0.22, size.y + 0.85, -size.z * 0.18), Color("#aeb8bc"), "RoofVent")
+
+	# A simple entrance gives each building a readable ground-floor frontage.
+	_box(building, Vector3(1.8, 2.5, 0.2), Vector3(0, 1.25, size.z * 0.5 + 0.13), Color("#344b58"), "EntranceDoor")
+	_box(building, Vector3(2.6, 0.22, 1.0), Vector3(0, 2.65, size.z * 0.5 + 0.55), roof_color, "EntranceAwning")
 
 	var label := Label3D.new()
-	label.text = building_name.replace("_", " ")
+	label.name = "BuildingSign"
+	label.text = building_name.replace("_", " ").to_upper()
 	label.font_size = 30
 	label.pixel_size = 0.009
-	label.position = Vector3(0, size.y + 1.1, size.z * 0.5 + 0.3)
+	label.position = Vector3(0, size.y + 1.35, size.z * 0.5 + 0.3)
 	label.modulate = Color("#ffffff")
 	building.add_child(label)
 
@@ -195,7 +228,11 @@ func _box(parent: Node3D, box_size: Vector3, pos: Vector3, color: Color, node_na
 	return instance
 
 func _material(color: Color) -> StandardMaterial3D:
+	var key := color.to_html()
+	if _material_cache.has(key):
+		return _material_cache[key] as StandardMaterial3D
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
-	material.roughness = 0.9
+	material.roughness = 0.82
+	_material_cache[key] = material
 	return material
