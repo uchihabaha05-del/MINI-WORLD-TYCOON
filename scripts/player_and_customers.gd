@@ -1,6 +1,6 @@
 extends Node3D
 
-# MINI WORLD TYCOON — Milestone 30: responsive character controller and mobile gameplay controls.
+# MINI WORLD TYCOON — Milestone 31: character animation and world interaction.
 const PLAYER_SPEED := 6.0
 const SPRINT_SPEED := 9.2
 const JUMP_VELOCITY := 6.2
@@ -20,6 +20,14 @@ var stamina := STAMINA_MAX
 var stamina_bar: ProgressBar
 var movement_status: Label
 var player_body_mesh: MeshInstance3D
+var arm_left: Node3D
+var arm_right: Node3D
+var leg_left: Node3D
+var leg_right: Node3D
+var interaction_button: Button
+var interaction_label: Label
+var nearby_plot_id := -1
+var near_shop := false
 var animation_clock := 0.0
 var held_directions := {"left": false, "right": false, "up": false, "down": false}
 var customer_timer: Timer
@@ -75,6 +83,13 @@ func _physics_process(delta: float) -> void:
 	animation_clock += delta * (12.0 if direction.length() > 0.1 and wants_sprint else 8.0)
 	if player_body_mesh != null:
 		player_body_mesh.position.y = 0.9 + (sin(animation_clock) * 0.045 if direction.length() > 0.1 and player.is_on_floor() else 0.0)
+	var swing := sin(animation_clock) * (0.55 if wants_sprint else 0.38) if direction.length() > 0.1 and player.is_on_floor() else 0.0
+	if arm_left != null:
+		arm_left.rotation.x = swing
+		arm_right.rotation.x = -swing
+		leg_left.rotation.x = -swing
+		leg_right.rotation.x = swing
+	_update_nearby_interaction()
 	if stamina_bar != null:
 		stamina_bar.value = stamina
 	if movement_status != null:
@@ -122,6 +137,7 @@ func _create_player() -> void:
 	head.material_override = _material(Color("#e8b995"))
 	player.add_child(head)
 
+	_create_limbs()
 	var marker := Label3D.new()
 	marker.text = "ВЫ"
 	marker.font_size = 28
@@ -165,6 +181,31 @@ func _create_controls() -> void:
 
 	_add_action_button(layer, "БЕГ", Vector2(24, -150), true)
 	_add_action_button(layer, "ПРЫЖОК", Vector2(24, -88), false)
+	interaction_button = Button.new()
+	interaction_button.text = "ВЗАИМОДЕЙСТВИЕ"
+	interaction_button.anchor_left = 1.0
+	interaction_button.anchor_top = 1.0
+	interaction_button.anchor_right = 1.0
+	interaction_button.anchor_bottom = 1.0
+	interaction_button.offset_left = -250
+	interaction_button.offset_top = -88
+	interaction_button.offset_right = -18
+	interaction_button.offset_bottom = -32
+	interaction_button.disabled = true
+	interaction_button.pressed.connect(_interact)
+	layer.add_child(interaction_button)
+	interaction_label = Label.new()
+	interaction_label.anchor_left = 1.0
+	interaction_label.anchor_top = 1.0
+	interaction_label.anchor_right = 1.0
+	interaction_label.anchor_bottom = 1.0
+	interaction_label.offset_left = -250
+	interaction_label.offset_top = -118
+	interaction_label.offset_right = -18
+	interaction_label.offset_bottom = -92
+	interaction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	interaction_label.text = "Подойди к объекту"
+	layer.add_child(interaction_label)
 	stamina_bar = ProgressBar.new()
 	stamina_bar.min_value = 0
 	stamina_bar.max_value = STAMINA_MAX
@@ -209,6 +250,60 @@ func _create_controls() -> void:
 	joystick_hint.offset_bottom = -178
 	joystick_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layer.add_child(joystick_hint)
+
+func _create_limbs() -> void:
+	arm_left = _make_limb("ArmLeft", Vector3(-0.48, 1.5, 0), 0.14, 0.72, Color("#28638f"))
+	arm_right = _make_limb("ArmRight", Vector3(0.48, 1.5, 0), 0.14, 0.72, Color("#28638f"))
+	leg_left = _make_limb("LegLeft", Vector3(-0.2, 0.48, 0), 0.17, 0.82, Color("#263d55"))
+	leg_right = _make_limb("LegRight", Vector3(0.2, 0.48, 0), 0.17, 0.82, Color("#263d55"))
+
+func _make_limb(label: String, offset: Vector3, radius: float, height: float, color: Color) -> Node3D:
+	var pivot := Node3D.new()
+	pivot.name = label
+	pivot.position = offset
+	player.add_child(pivot)
+	var mesh_node := MeshInstance3D.new()
+	var mesh := CapsuleMesh.new()
+	mesh.radius = radius
+	mesh.height = height
+	mesh_node.mesh = mesh
+	mesh_node.position.y = -height * 0.38
+	mesh_node.material_override = _material(color)
+	pivot.add_child(mesh_node)
+	return pivot
+
+func _update_nearby_interaction() -> void:
+	nearby_plot_id = -1
+	near_shop = player.global_position.distance_to(SHOP_ENTRANCE) < 8.0
+	var best_distance := 8.0
+	if tycoon_manager != null:
+		var plots: Array = tycoon_manager.get("plots")
+		for i in range(plots.size()):
+			var plot_area := plots[i].get("area") as Node3D
+			if plot_area == null:
+				continue
+			var distance := player.global_position.distance_to(plot_area.global_position)
+			if distance < best_distance:
+				best_distance = distance
+				nearby_plot_id = i
+	if interaction_button == null:
+		return
+	interaction_button.disabled = not near_shop and nearby_plot_id < 0
+	if near_shop:
+		interaction_button.text = "ОТКРЫТЬ МАГАЗИН"
+		interaction_label.text = "Управление MINI MARKET"
+	elif nearby_plot_id >= 0:
+		interaction_button.text = "ВЫБРАТЬ УЧАСТОК"
+		interaction_label.text = "Участок %d" % (nearby_plot_id + 1)
+	else:
+		interaction_button.text = "ВЗАИМОДЕЙСТВИЕ"
+		interaction_label.text = "Подойди к магазину или участку"
+
+func _interact() -> void:
+	if near_shop and store_system != null and store_system.has_method("toggle_shop_panel"):
+		store_system.call("toggle_shop_panel")
+	elif nearby_plot_id >= 0 and tycoon_manager != null:
+		tycoon_manager.call("_select_plot", nearby_plot_id)
 
 func _create_ground_collision() -> void:
 	var ground := StaticBody3D.new()
