@@ -17,7 +17,7 @@ background_mode = 1
 background_color = Color(0.48, 0.72, 0.9, 1)
 ambient_light_source = 3
 ambient_light_color = Color(0.82, 0.88, 1, 1)
-ambient_light_energy = 0.8
+ambient_light_energy = 0.58
 tonemap_mode = 2
 
 [node name="Main" type="Node3D"]
@@ -58,7 +58,7 @@ environment = SubResource("Environment_City")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-52, -32, 0)
-light_energy = 1.15
+light_energy = 0.9
 shadow_enabled = true
 directional_shadow_mode = 1
 
