@@ -4,6 +4,13 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 21 — municipal finance, taxes and city budget**
+- Added a configurable business tax rate from 0% to 20%, adjustable in 2-point steps.
+- Municipal tax revenue is calculated from the current passive income of owned businesses and credited to the shared city wallet every 30 seconds.
+- City operating expenses scale with population and the number of constructed buildings.
+- The finance HUD reports the tax rate, latest tax collection, city expenses, cumulative tax revenue and cumulative spending.
+- Tax settings and financial history persist in `user://municipal_finance.cfg`; wallet changes use the existing tycoon save system.
+
 **Milestone 20 — major city expansion**
 - Expanded the playable ground and road grid to a 220 × 220 city footprint with two outer ring-road axes and four new outer districts.
 - Expanded land development from four to twelve buildable plots while retaining the original four plot positions and saved ownership/building data.
