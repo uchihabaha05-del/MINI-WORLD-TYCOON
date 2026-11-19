@@ -1,6 +1,6 @@
 extends Node3D
 
-# MINI WORLD TYCOON — Milestone 32: analog controls, orbit camera and animated crowds.
+# MINI WORLD TYCOON — Milestone 33: collision-aware city and camera-relative movement.
 const PLAYER_SPEED := 6.0
 const SPRINT_SPEED := 9.2
 const JUMP_VELOCITY := 6.2
@@ -84,10 +84,15 @@ func _physics_process(delta: float) -> void:
 		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
 		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP))
 	)
-	var direction := move_vector
+	var input_direction := move_vector
 	if keyboard.length() > 0.05:
-		direction = keyboard
-	direction = direction.limit_length(1.0)
+		input_direction = keyboard
+	input_direction = input_direction.limit_length(1.0)
+	var direction := Vector2.ZERO
+	if input_direction.length() > 0.01:
+		var camera_basis := Basis(Vector3.UP, deg_to_rad(camera_yaw))
+		var world_direction := camera_basis * Vector3(input_direction.x, 0.0, input_direction.y)
+		direction = Vector2(world_direction.x, world_direction.z).normalized() * input_direction.length()
 	var wants_sprint := (sprint_held or Input.is_key_pressed(KEY_SHIFT)) and direction.length() > 0.1 and stamina > 0.5
 	var current_speed := SPRINT_SPEED if wants_sprint else PLAYER_SPEED
 	if wants_sprint:
@@ -563,6 +568,10 @@ func _walk_customer(customer: Node3D, path: Array, business: String, spend: int,
 	for point in path:
 		var destination: Vector3 = point
 		var travel_time := maxf(1.2, customer.global_position.distance_to(destination) / 4.0)
+		var travel_direction := destination - customer.global_position
+		if Vector2(travel_direction.x, travel_direction.z).length() > 0.1:
+			var facing := atan2(travel_direction.x, travel_direction.z)
+			tween.parallel().tween_property(customer, "rotation:y", facing, 0.25)
 		tween.tween_property(customer, "global_position", destination, travel_time)
 	tween.tween_callback(_serve_customer.bind(business, spend, is_rival, rival_id, plot_id))
 	tween.tween_interval(2.0)
