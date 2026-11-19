@@ -250,9 +250,22 @@ func _choose_business_destination() -> Dictionary:
 				spend = 24
 			elif building == "Кафе":
 				spend = 16
-			destinations.append({"business": building, "position": entrance, "spend": spend})
-	var chosen: Dictionary = destinations[randi_range(0, destinations.size() - 1)]
-	return chosen
+			destinations.append({"business": building, "position": entrance, "spend": spend, "plot_id": int(plot["id"])})
+	var total_weight := 0.0
+	for destination in destinations:
+		var weight := 45.0
+		if String(destination["business"]) != "MINI MARKET":
+			var plot_id := int(destination.get("plot_id", -1))
+			var appeal = tycoon_manager.call("get_business_appeal", plot_id) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
+			weight = 10.0 + float(appeal)
+		destination["weight"] = weight
+		total_weight += weight
+	var roll := randf() * total_weight
+	for destination in destinations:
+		roll -= float(destination["weight"])
+		if roll <= 0.0:
+			return destination
+	return destinations[0]
 
 func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3) -> void:
 	var tween := create_tween()
@@ -278,7 +291,18 @@ func _serve_customer(business: String, spend: int) -> void:
 		return
 	if tycoon_manager == null:
 		return
-	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + spend)
+	var happiness_factor := 1.0
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+	if city_life and city_life.has_method("get_happiness"):
+		happiness_factor = 0.7 + float(city_life.call("get_happiness")) / 200.0
+	var appeal_factor := 1.0
+	if tycoon_manager.has_method("get_business_appeal"):
+		for plot in tycoon_manager.get("plots"):
+			if String(plot.get("building", "")) == business:
+				appeal_factor = 0.75 + float(tycoon_manager.call("get_business_appeal", int(plot["id"]))) / 400.0
+				break
+	var revenue := roundi(float(spend) * happiness_factor * appeal_factor)
+	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + revenue)
 	tycoon_manager.call("_save_game")
 	tycoon_manager.call("_refresh_ui")
 
