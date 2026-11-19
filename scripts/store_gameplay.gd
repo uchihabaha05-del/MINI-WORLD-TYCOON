@@ -32,6 +32,7 @@ var auto_restocked_total := 0
 var delivery_pending: Array[bool] = [false, false, false]
 var delivery_label: Label
 var city_life: Node
+var city_event_multiplier: float = 1.0
 
 func _ready() -> void:
 	rng.randomize()
@@ -270,6 +271,11 @@ func _build_checkout_area() -> void:
 		marker.material_override = _mat(Color("#e8c75b"))
 		add_child(marker)
 
+func set_city_event_multiplier(value: float) -> void:
+	city_event_multiplier = clampf(value, 1.0, 2.0)
+	if sales_label != null:
+		sales_label.text = "Городское событие: бонус продаж x%.2f" % city_event_multiplier if city_event_multiplier > 1.0 else "Продажи магазина"
+
 func serve_customer() -> void:
 	var available: Array[int] = []
 	for i in range(stock.size()):
@@ -282,7 +288,7 @@ func serve_customer() -> void:
 	stock[product_id] -= 1
 	var base_sale := int(PRODUCTS[product_id]["sell"])
 	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
-	var sale := base_sale + demand_bonus
+	var sale := int(round(float(base_sale + demand_bonus) * city_event_multiplier))
 	var cost := int(PRODUCTS[product_id]["buy"])
 	manager.set("cash", int(manager.get("cash")) + sale)
 	total_sales += 1
