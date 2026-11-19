@@ -13,6 +13,7 @@ var status_label: Label
 var passengers_waiting := 0
 var passengers_served := 0
 var total_fares := 0
+var current_stop := 1
 var stop_positions: Array[Vector3] = [
 	Vector3(-30, 0, -8.0),
 	Vector3(30, 0, -8.0),
@@ -109,6 +110,7 @@ func _bus_departure() -> void:
 	tween.tween_callback(_bus_stop_arrival.bind(0))
 
 func _bus_stop_arrival(stop_index: int) -> void:
+	current_stop = stop_index + 1
 	if passengers_waiting > 0:
 		var boarded := mini(passengers_waiting, randi_range(1, 3))
 		passengers_waiting -= boarded
@@ -124,7 +126,7 @@ func _bus_stop_arrival(stop_index: int) -> void:
 func _update_status() -> void:
 	if status_label:
 		status_label.text = "🚌 Маршрут 01 • остановка %d/4\nОжидают: %d  •  перевезено: %d\nДоход от билетов: %d монет" % [
-			1, passengers_waiting, passengers_served, total_fares
+			current_stop, passengers_waiting, passengers_served, total_fares
 		]
 
 func _box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
