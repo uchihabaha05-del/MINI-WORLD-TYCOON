@@ -4,6 +4,10 @@ extends Node3D
 const PLOT_COST := 300
 const STARTING_CASH := 1200
 const INCOME_INTERVAL := 10.0
+const WORKER_HIRE_COST := 250
+const WORKER_SALARY := 8
+const WORKER_BONUS := 12
+const MAX_WORKERS_PER_LEVEL := 2
 const BUILDINGS := {
 	"Магазин": {"cost": 450, "income": 45, "color": Color("#e5b66b"), "height": 6.0},
 	"Кафе": {"cost": 650, "income": 65, "color": Color("#c77c62"), "height": 5.0},
@@ -27,6 +31,8 @@ var apartments_button: Button
 var restaurant_button: Button
 var workshop_button: Button
 var upgrade_button: Button
+var hire_worker_button: Button
+var staff_label: Label
 var income_timer: Timer
 
 func _ready() -> void:
@@ -86,7 +92,8 @@ func _create_plots() -> void:
 			"pad": pad,
 			"owned": false,
 			"building": "",
-			"level": 0
+			"level": 0,
+			"workers": 0
 		})
 
 func _create_interface() -> void:
@@ -161,6 +168,12 @@ func _create_interface() -> void:
 	upgrade_button.text = "Улучшить здание"
 	upgrade_button.pressed.connect(_upgrade_selected_plot)
 	content.add_child(upgrade_button)
+	staff_label = Label.new()
+	staff_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(staff_label)
+	hire_worker_button = Button.new()
+	hire_worker_button.pressed.connect(_hire_plot_worker)
+	content.add_child(hire_worker_button)
 
 func _make_build_button(caption: String, building_type: String) -> Button:
 	var button := Button.new()
@@ -244,13 +257,26 @@ func _start_income_timer() -> void:
 
 func _collect_income() -> void:
 	var earned := 20 # Starting MINI MARKET business.
+	var payroll := 0
+	var worker_bonus := 0
 	for plot in plots:
 		var building_type := String(plot["building"])
 		if not building_type.is_empty() and BUILDINGS.has(building_type):
 			var definition: Dictionary = BUILDINGS[building_type]
 			earned += int(definition["income"]) * int(plot["level"])
-	cash += earned
-	status_label.text = "Доход за цикл: +%d  •  каждые 10 секунд" % earned
+			payroll += int(plot.get("workers", 0)) * WORKER_SALARY
+	if cash >= payroll:
+		for plot in plots:
+			var building_type := String(plot["building"])
+			if not building_type.is_empty() and building_type != "Апартаменты":
+				worker_bonus += int(plot.get("workers", 0)) * WORKER_BONUS
+		cash -= payroll
+		earned += worker_bonus
+		cash += earned
+		status_label.text = "Доход +%d, зарплаты -%d за цикл" % [earned, payroll]
+	else:
+		cash += earned
+		status_label.text = "Доход +%d • не хватает на зарплаты: %d" % [earned, payroll]
 	_save_game()
 	_refresh_ui()
 
@@ -356,6 +382,14 @@ func _refresh_ui() -> void:
 	restaurant_button.disabled = cash < int(BUILDINGS["Ресторан"]["cost"])
 	workshop_button.disabled = cash < int(BUILDINGS["Мастерская"]["cost"])
 	upgrade_button.visible = owned and not building_type.is_empty()
+	var has_business := owned and not building_type.is_empty() and building_type != "Апартаменты"
+	var worker_count := int(plot.get("workers", 0))
+	var worker_limit := maxi(1, int(plot["level"]) * MAX_WORKERS_PER_LEVEL)
+	staff_label.visible = has_business
+	hire_worker_button.visible = has_business
+	staff_label.text = "Персонал: %d/%d • зарплата %d за цикл • бонус +%d дохода" % [worker_count, worker_limit, worker_count * WORKER_SALARY, worker_count * WORKER_BONUS]
+	hire_worker_button.text = "Нанять работника — %d" % WORKER_HIRE_COST
+	hire_worker_button.disabled = cash < WORKER_HIRE_COST or worker_count >= worker_limit
 	if not owned:
 		plot_info.text = "Свободная земля. Цена покупки: %d монет." % PLOT_COST
 	elif building_type.is_empty():
@@ -368,6 +402,23 @@ func _refresh_ui() -> void:
 		]
 	upgrade_button.text = "Улучшить — %d монет" % (500 * int(plot["level"]))
 	upgrade_button.disabled = cash < 500 * int(plot["level"])
+
+func _hire_plot_worker() -> void:
+	if not _has_selection():
+		return
+	var plot: Dictionary = plots[selected_plot]
+	var building_type := String(plot["building"])
+	if building_type.is_empty() or building_type == "Апартаменты":
+		return
+	var worker_limit := maxi(1, int(plot["level"]) * MAX_WORKERS_PER_LEVEL)
+	var workers := int(plot.get("workers", 0))
+	if workers >= worker_limit or cash < WORKER_HIRE_COST:
+		return
+	cash -= WORKER_HIRE_COST
+	plot["workers"] = workers + 1
+	plots[selected_plot] = plot
+	_save_game()
+	_refresh_ui()
 
 func _has_selection() -> bool:
 	return selected_plot >= 0 and selected_plot < plots.size()
@@ -386,6 +437,7 @@ func _save_game() -> void:
 		config.set_value("plots", "owned_%d" % i, bool(plot["owned"]))
 		config.set_value("plots", "building_%d" % i, String(plot["building"]))
 		config.set_value("plots", "level_%d" % i, int(plot["level"]))
+		config.set_value("plots", "workers_%d" % i, int(plot.get("workers", 0)))
 	config.save("user://tycoon_save.cfg")
 
 func _load_game() -> void:
@@ -398,4 +450,5 @@ func _load_game() -> void:
 		plot["owned"] = bool(config.get_value("plots", "owned_%d" % i, false))
 		plot["building"] = String(config.get_value("plots", "building_%d" % i, ""))
 		plot["level"] = int(config.get_value("plots", "level_%d" % i, 0))
+		plot["workers"] = maxi(0, int(config.get_value("plots", "workers_%d" % i, 0)))
 		plots[i] = plot
