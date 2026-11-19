@@ -23,6 +23,7 @@ func _ready() -> void:
 	_build_city_buildings()
 	_build_park()
 	_build_street_details()
+	_build_roadside_furniture()
 
 func _build_ground() -> void:
 	_box(self, Vector3(110, 0.5, 110), Vector3(0, -0.3, 0), GRASS, "CityGround")
@@ -41,6 +42,31 @@ func _build_roads() -> void:
 		_box(self, Vector3(110, 0.1, 6), Vector3(0, 0.015, z), ROAD, "SideRoad")
 	for x in [-30.0, 30.0]:
 		_box(self, Vector3(6, 0.1, 110), Vector3(x, 0.015, 0), ROAD, "SideRoad")
+
+	# Continuous sidewalks and raised curbs beside the secondary streets.
+	for z in [-30.0, 30.0]:
+		for side in [-1.0, 1.0]:
+			_box(self, Vector3(110, 0.16, 1.5), Vector3(0, 0.11, z + side * 3.75), SIDEWALK, "SideRoadSidewalk")
+			_box(self, Vector3(110, 0.22, 0.18), Vector3(0, 0.17, z + side * 3.05), Color("#aaa99f"), "SideRoadCurb")
+	for x in [-30.0, 30.0]:
+		for side in [-1.0, 1.0]:
+			_box(self, Vector3(1.5, 0.16, 110), Vector3(x + side * 3.75, 0.11, 0), SIDEWALK, "SideRoadSidewalk")
+			_box(self, Vector3(0.18, 0.22, 110), Vector3(x + side * 3.05, 0.17, 0), Color("#aaa99f"), "SideRoadCurb")
+
+	# Broken centre markings on the secondary roads.
+	for i in range(-9, 10):
+		var mark_pos := float(i) * 5.5
+		for z in [-30.0, 30.0]:
+			_box(self, Vector3(2.5, 0.025, 0.12), Vector3(mark_pos, 0.09, z), LINE, "SideRoadMarking")
+		for x in [-30.0, 30.0]:
+			_box(self, Vector3(0.12, 0.025, 2.5), Vector3(x, 0.09, mark_pos), LINE, "SideRoadMarking")
+
+	# Zebra crossings at the four outer road junctions.
+	for junction in [-30.0, 30.0]:
+		for i in range(5):
+			var stripe := -2.0 + float(i) * 1.0
+			_box(self, Vector3(0.45, 0.03, 4.8), Vector3(stripe, 0.12, junction + 4.0), Color.WHITE, "SideCrosswalk")
+			_box(self, Vector3(4.8, 0.03, 0.45), Vector3(junction + 4.0, 0.12, stripe), Color.WHITE, "SideCrosswalk")
 
 	# Sidewalk strips beside the main streets.
 	for side in [-1.0, 1.0]:
@@ -179,6 +205,67 @@ func _build_street_details() -> void:
 	for z in [-10.0, 10.0]:
 		_lamp(self, Vector3(7.0, 0, z))
 		_lamp(self, Vector3(-7.0, 0, z))
+
+
+func _build_roadside_furniture() -> void:
+	# Waste bins near pedestrian corners.
+	for pos in [
+		Vector3(-8.0, 0, -8.0), Vector3(8.0, 0, 8.0),
+		Vector3(-8.0, 0, 8.0), Vector3(8.0, 0, -8.0),
+		Vector3(-26.0, 0, -26.0), Vector3(26.0, 0, 26.0)
+	]:
+		_trash_bin(self, pos)
+
+	# Short protective bollards around selected sidewalk corners.
+	for x in [-8.0, 8.0]:
+		for z in [-8.0, 8.0]:
+			_bollard(self, Vector3(x, 0, z))
+
+	# Street-name signs at the central junction.
+	_street_sign(self, Vector3(-7.2, 0, -7.2), "MAIN ST")
+	_street_sign(self, Vector3(7.2, 0, 7.2), "MARKET ST")
+
+	# A few extra trees soften the edges of the outer blocks.
+	for x in [-42.0, 42.0]:
+		for z in [-23.0, 23.0]:
+			_tree(self, Vector3(x, 0, z))
+
+func _trash_bin(parent: Node3D, pos: Vector3) -> void:
+	_box(parent, Vector3(0.72, 0.95, 0.68), pos + Vector3(0, 0.48, 0), Color("#4d6870"), "StreetTrashBin")
+	_box(parent, Vector3(0.82, 0.12, 0.76), pos + Vector3(0, 1.0, 0), Color("#34474d"), "TrashBinLid")
+	_box(parent, Vector3(0.38, 0.08, 0.04), pos + Vector3(0, 0.68, 0.36), Color("#d8e2dc"), "TrashBinSlot")
+
+func _bollard(parent: Node3D, pos: Vector3) -> void:
+	var post := MeshInstance3D.new()
+	post.name = "SidewalkBollard"
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.12
+	mesh.bottom_radius = 0.16
+	mesh.height = 0.8
+	post.mesh = mesh
+	post.position = pos + Vector3(0, 0.4, 0)
+	post.material_override = _material(Color("#d7d0bd"))
+	parent.add_child(post)
+
+func _street_sign(parent: Node3D, pos: Vector3, sign_text: String) -> void:
+	var pole := MeshInstance3D.new()
+	pole.name = "StreetSignPole"
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.045
+	mesh.bottom_radius = 0.06
+	mesh.height = 2.5
+	pole.mesh = mesh
+	pole.position = pos + Vector3(0, 1.25, 0)
+	pole.material_override = _material(Color("#53616a"))
+	parent.add_child(pole)
+	_box(parent, Vector3(2.2, 0.62, 0.12), pos + Vector3(0, 2.35, 0), Color("#386d59"), "StreetNamePlate")
+	var label := Label3D.new()
+	label.text = sign_text
+	label.font_size = 24
+	label.pixel_size = 0.008
+	label.position = pos + Vector3(0, 2.35, 0.09)
+	label.modulate = Color.WHITE
+	parent.add_child(label)
 
 func _tree(parent: Node3D, pos: Vector3) -> void:
 	var trunk := MeshInstance3D.new()
