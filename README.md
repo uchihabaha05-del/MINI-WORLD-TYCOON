@@ -2,6 +2,16 @@
 
 ## Current milestone
 
+**Milestone 27 — expanded beginner campaign and shop achievements**
+- Expanded the first campaign from five to eight goals with clear shop-based objectives.
+- New goals: sell 10 products, earn 500 coins from shop sales, and hire a shop assistant.
+- Rewards are granted once and recorded in the existing quest save data.
+- Shop sales and lifetime profit are now saved and restored, so campaign progress is not lost when the game closes.
+- Sales and assistant hiring immediately trigger quest progress checks.
+
+
+## Current milestone
+
 **Milestone 26 — city progression and unlockable buildings**
 - Added six city development levels based on the number of completed buildings.
 - Level-ups grant one-time coin rewards: 250, 500, 750, 1,200 and 2,000 coins.
