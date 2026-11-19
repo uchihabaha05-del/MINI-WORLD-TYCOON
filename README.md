@@ -4,6 +4,12 @@ A mobile-first 3D shop-management tycoon prototype built with Godot 4.7.
 
 ## Current milestone
 
+**Milestone 6 — store inventory and sales**
+- Added three visible product shelves: bread, drinks and snacks.
+- Added restocking in batches of five, with purchase costs deducted from cash.
+- Customers automatically buy stocked products every five seconds.
+- Sales revenue returns to the shared city wallet; sales and profit counters update live.
+
 **Milestone 5 — player and customers**
 - Added a controllable third-person character with keyboard and on-screen directional buttons.
 - Camera follows the player while keeping the city visible.
