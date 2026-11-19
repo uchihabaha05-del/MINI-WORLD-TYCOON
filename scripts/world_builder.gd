@@ -104,13 +104,13 @@ func _build_shop() -> void:
 	_box(shop, Vector3(2.2, 4.0, 0.22), Vector3(0, 2.7, 6.18), Color("#79b7c9"), "EntranceDoor")
 
 	var building_sign := Label3D.new()
-	building_sign.name = "ShopSign"
-	sign.text = "MINI MARKET"
-	sign.font_size = 64
-	sign.pixel_size = 0.012
-	sign.position = Vector3(0, 6.25, 6.35)
-	sign.modulate = Color("#fff7df")
-	shop.add_child(sign)
+	building_building_sign.name = "ShopSign"
+	building_sign.text = "MINI MARKET"
+	building_sign.font_size = 64
+	building_sign.pixel_size = 0.012
+	building_sign.position = Vector3(0, 6.25, 6.35)
+	building_sign.modulate = Color("#fff7df")
+	shop.add_child(building_sign)
 
 	# Loading bay and delivery crates.
 	_box(shop, Vector3(5.0, 2.4, 0.25), Vector3(-5.8, 1.2, -6.15), Color("#b5a18b"), "LoadingDoor")
