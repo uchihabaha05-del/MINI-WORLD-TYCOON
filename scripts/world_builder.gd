@@ -29,6 +29,7 @@ func _ready() -> void:
 	_detail_shop_entrance()
 	_apply_visual_refresh()
 	_build_market_plaza()
+	_build_shop_interior_details()
 	_build_road_markings_upgrade()
 
 func _build_ground() -> void:
@@ -97,17 +98,27 @@ func _build_shop() -> void:
 	shop.position = Vector3(-15, 0, -15)
 	add_child(shop)
 
-	# Main shop body and contrasting roof.
-	_box(shop, Vector3(17, 7, 12), Vector3(0, 3.5, 0), Color("#f1dfc4"), "ShopBuilding")
-	_add_static_box_collision(shop, Vector3(17, 7, 12), Vector3(0, 3.5, 0), "ShopCollision")
-	_box(shop, Vector3(18, 0.65, 13), Vector3(0, 7.25, 0), Color("#b85f49"), "ShopRoof")
+	# Open-roof walk-in market: a floor, solid side/rear walls and a clear front entrance.
+	_box(shop, Vector3(17, 0.35, 12), Vector3(0, 0.0, 0), Color("#d9d4c8"), "ShopFloor")
+	_box(shop, Vector3(17, 7, 0.45), Vector3(0, 3.5, -5.78), Color("#f1dfc4"), "ShopRearWall")
+	_box(shop, Vector3(0.45, 7, 11.6), Vector3(-8.28, 3.5, 0), Color("#f1dfc4"), "ShopLeftWall")
+	_box(shop, Vector3(0.45, 7, 11.6), Vector3(8.28, 3.5, 0), Color("#f1dfc4"), "ShopRightWall")
+	_add_static_box_collision(shop, Vector3(17, 7, 0.45), Vector3(0, 3.5, -5.78), "ShopRearCollision")
+	_add_static_box_collision(shop, Vector3(0.45, 7, 11.6), Vector3(-8.28, 3.5, 0), "ShopLeftCollision")
+	_add_static_box_collision(shop, Vector3(0.45, 7, 11.6), Vector3(8.28, 3.5, 0), "ShopRightCollision")
+	# Roof rim frames the interior while leaving it visible from the elevated game camera.
+	_box(shop, Vector3(18, 0.55, 0.65), Vector3(0, 7.1, -6.1), Color("#b85f49"), "ShopRearRoofRim")
+	_box(shop, Vector3(0.65, 0.55, 13), Vector3(-8.65, 7.1, 0), Color("#b85f49"), "ShopLeftRoofRim")
+	_box(shop, Vector3(0.65, 0.55, 13), Vector3(8.65, 7.1, 0), Color("#b85f49"), "ShopRightRoofRim")
 	_box(shop, Vector3(17.2, 1.15, 0.25), Vector3(0, 5.8, 6.12), Color("#e8a85e"), "ShopFacadeBand")
-
-	# Glass storefront facing the main road.
-	for x in [-5.5, -2.0, 2.0, 5.5]:
-		_box(shop, Vector3(2.8, 3.7, 0.16), Vector3(x, 2.7, 6.16), WINDOW, "StoreWindow")
-		_box(shop, Vector3(0.12, 3.9, 0.2), Vector3(x + 1.48, 2.7, 6.12), Color("#f7f0e3"), "WindowFrame")
-	_box(shop, Vector3(2.2, 4.0, 0.22), Vector3(0, 2.7, 6.18), Color("#79b7c9"), "EntranceDoor")
+	# Front glazing is split into two broad windows and narrow corner panels; centre stays open.
+	for x in [-6.2, 6.2]:
+		_box(shop, Vector3(4.1, 3.7, 0.16), Vector3(x, 2.7, 6.16), WINDOW, "StoreWindow")
+		_box(shop, Vector3(0.12, 3.9, 0.2), Vector3(x + (2.1 if x < 0 else -2.1), 2.7, 6.12), Color("#f7f0e3"), "WindowFrame")
+	_box(shop, Vector3(2.0, 0.16, 0.35), Vector3(0, 0.12, 6.1), Color("#b8a68e"), "EntranceThreshold")
+	_box(shop, Vector3(0.12, 3.7, 0.16), Vector3(-1.15, 2.7, 6.12), Color("#f7f0e3"), "DoorFrame")
+	_box(shop, Vector3(0.12, 3.7, 0.16), Vector3(1.15, 2.7, 6.12), Color("#f7f0e3"), "DoorFrame")
+	_box(shop, Vector3(2.1, 0.16, 0.16), Vector3(0, 4.55, 6.12), Color("#f7f0e3"), "DoorFrame")
 
 	var building_sign := Label3D.new()
 	building_sign.name = "ShopSign"
@@ -519,3 +530,32 @@ func _build_road_markings_upgrade() -> void:
 	for p in [Vector3(-3.2, 0.15, -12), Vector3(3.2, 0.15, 12)]:
 		_box(self, Vector3(1.8, 0.035, 0.18), p, Color("#f5f2e8"), "LaneArrowStem")
 		_box(self, Vector3(0.18, 0.035, 1.0), p + Vector3(0, 0, -0.42), Color("#f5f2e8"), "LaneArrowHead")
+
+
+func _build_shop_interior_details() -> void:
+	var shop := get_node_or_null("PlayerShop") as Node3D
+	if shop == null:
+		return
+	# Wall-mounted lighting and a branded back-wall panel.
+	_box(shop, Vector3(6.8, 1.1, 0.16), Vector3(0, 5.35, -5.48), Color("#315d70"), "InteriorBrandPanel")
+	var interior_sign := Label3D.new()
+	interior_sign.text = "FRESH • DAILY • LOCAL"
+	interior_sign.font_size = 28
+	interior_sign.pixel_size = 0.012
+	interior_sign.position = Vector3(0, 5.35, -5.36)
+	interior_sign.modulate = Color("#fff4dc")
+	shop.add_child(interior_sign)
+	for x in [-5.8, -2.0, 2.0, 5.8]:
+		_box(shop, Vector3(0.16, 0.12, 1.0), Vector3(x, 6.25, -2.2), Color("#e9d6ad"), "InteriorCeilingLight")
+	# Checkout counter faces the open entrance.
+	_box(shop, Vector3(3.2, 1.15, 1.2), Vector3(0, 0.72, 4.25), Color("#79553b"), "CheckoutCounter")
+	_box(shop, Vector3(3.0, 0.12, 1.1), Vector3(0, 1.35, 4.25), Color("#d8c4a4"), "CheckoutTop")
+	_box(shop, Vector3(0.75, 0.1, 0.52), Vector3(0.8, 1.47, 4.25), Color("#263a42"), "CheckoutTerminal")
+	_box(shop, Vector3(0.42, 0.08, 0.32), Vector3(-0.8, 1.47, 4.25), Color("#6ba9b8"), "CheckoutScanner")
+	# Fridges and wall shelving along the rear wall.
+	for x in [-6.0, 6.0]:
+		_box(shop, Vector3(1.5, 3.7, 1.5), Vector3(x, 1.85, -4.35), Color("#5d7580"), "Refrigerator")
+		_box(shop, Vector3(1.22, 3.3, 0.08), Vector3(x, 1.85, -3.56), Color("#a8d1d8"), "FridgeGlass")
+		for y in [0.9, 1.8, 2.7]:
+			_box(shop, Vector3(1.25, 0.08, 0.18), Vector3(x, y, -3.48), Color("#e5e1d5"), "FridgeShelf")
+	# Ceiling-free design is intentional: the player and shelves remain readable from the gameplay camera.
