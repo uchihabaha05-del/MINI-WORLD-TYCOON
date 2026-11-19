@@ -25,6 +25,8 @@ func _ready() -> void:
 	_build_street_details()
 	_build_roadside_furniture()
 	_build_outer_districts()
+	_build_traffic_lights()
+	_detail_shop_entrance()
 
 func _build_ground() -> void:
 	_box(self, Vector3(220, 0.5, 220), Vector3(0, -0.3, 0), GRASS, "CityGround")
@@ -379,3 +381,49 @@ func _build_outer_districts() -> void:
 		_box(self, Vector3(13, 0.12, 13), center, GRASS_DARK, "DistrictGreen")
 		_tree(self, center + Vector3(-4, 0, -4))
 		_tree(self, center + Vector3(4, 0, 4))
+
+
+func _detail_shop_entrance() -> void:
+	var shop := get_node_or_null("PlayerShop") as Node3D
+	if shop == null:
+		return
+	_box(shop, Vector3(13.8, 0.28, 1.25), Vector3(0, 4.85, 6.75), Color("#d65f4d"), "ShopAwning")
+	for i in range(7):
+		_box(shop, Vector3(0.12, 0.3, 1.28), Vector3(-6.0 + float(i) * 2.0, 4.85, 6.77), Color("#f4dfb8"), "AwningStripe")
+	_box(shop, Vector3(0.07, 0.72, 0.07), Vector3(0.82, 2.65, 6.32), Color("#d7bd79"), "EntranceHandle")
+	for x in [-6.0, 6.0]:
+		_box(shop, Vector3(2.2, 0.5, 0.65), Vector3(x, 0.42, 6.9), Color("#8a6848"), "WindowDisplayPlinth")
+		_box(shop, Vector3(1.7, 0.42, 0.45), Vector3(x, 0.88, 6.9), Color("#d7a15b"), "WindowDisplay")
+
+func _build_traffic_lights() -> void:
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			var signal_root := Node3D.new()
+			signal_root.name = "TrafficSignal"
+			signal_root.position = Vector3(sx * 6.5, 0, sz * 6.5)
+			add_child(signal_root)
+			var pole := MeshInstance3D.new()
+			var pole_mesh := CylinderMesh.new()
+			pole_mesh.top_radius = 0.07
+			pole_mesh.bottom_radius = 0.1
+			pole_mesh.height = 4.2
+			pole.mesh = pole_mesh
+			pole.position.y = 2.1
+			pole.material_override = _material(Color("#46535a"))
+			signal_root.add_child(pole)
+			_box(signal_root, Vector3(0.62, 1.65, 0.48), Vector3(-sx * 0.22, 3.65, -sz * 0.15), Color("#20282d"), "SignalHousing")
+			for light_index in range(3):
+				var lamp := MeshInstance3D.new()
+				lamp.name = ["SignalRed", "SignalAmber", "SignalGreen"][light_index]
+				var sphere := SphereMesh.new()
+				sphere.radius = 0.19
+				sphere.height = 0.38
+				lamp.mesh = sphere
+				lamp.position = Vector3(-sx * 0.22, 4.15 - float(light_index) * 0.5, -sz * 0.15 - 0.26)
+				var signal_material := StandardMaterial3D.new()
+				signal_material.albedo_color = [Color("#ef4942"), Color("#f0bd43"), Color("#45c878")][light_index]
+				signal_material.emission_enabled = true
+				signal_material.emission = signal_material.albedo_color
+				signal_material.emission_energy_multiplier = 0.65
+				lamp.material_override = signal_material
+				signal_root.add_child(lamp)
