@@ -306,7 +306,7 @@ func _input(event: InputEvent) -> void:
 		if event.index == joystick_touch_index:
 			_update_joystick(event.position)
 		elif event.index == camera_touch_index:
-			var drag := event.position - last_camera_touch
+			var drag: Vector2 = event.position - last_camera_touch
 			camera_yaw = wrapf(camera_yaw - drag.x * 0.22, -180.0, 180.0)
 			camera_pitch = clampf(camera_pitch + drag.y * 0.12, 18.0, 62.0)
 			last_camera_touch = event.position
