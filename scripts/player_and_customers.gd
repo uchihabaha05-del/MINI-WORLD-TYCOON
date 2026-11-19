@@ -226,7 +226,7 @@ func _spawn_customer() -> void:
 	head.material_override = _material(Color("#e7b895"))
 	customer.add_child(head)
 
-	var destination := _choose_business_destination()
+	var destination: Dictionary = _choose_business_destination()
 	var target: Vector3 = destination["position"]
 	var route := [spawn_position, Vector3(target.x, 0.0, spawn_position.z), target]
 	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position, bool(destination.get("rival", false)), int(destination.get("rival_id", -1)), int(destination.get("plot_id", -1)))
@@ -238,14 +238,14 @@ func _choose_business_destination() -> Dictionary:
 	if tycoon_manager != null:
 		var owned_plots: Array = tycoon_manager.get("plots")
 		for plot in owned_plots:
-			var building := String(plot.get("building", ""))
+			var building: String = String(plot.get("building", ""))
 			if building.is_empty() or building == "Апартаменты":
 				continue
-			var area := plot.get("area") as Node3D
+			var area: Node3D = plot.get("area") as Node3D
 			if area == null:
 				continue
-			var entrance := area.global_position + Vector3(0.0, 0.0, 5.5)
-			var spend := 18
+			var entrance: Vector3 = area.global_position + Vector3(0.0, 0.0, 5.5)
+			var spend: int = 18
 			if building == "Ресторан":
 				spend = 28
 			elif building == "Мастерская":
@@ -256,18 +256,18 @@ func _choose_business_destination() -> Dictionary:
 	if rival_system != null and rival_system.has_method("get_rival_destinations"):
 		for rival_destination in rival_system.call("get_rival_destinations"):
 			destinations.append(rival_destination)
-	var total_weight := 0.0
+	var total_weight: float = 0.0
 	for destination in destinations:
-		var weight := 45.0
+		var weight: float = 45.0
 		if bool(destination.get("rival", false)):
 			weight = float(destination.get("weight", 50.0))
 		elif String(destination["business"]) != "MINI MARKET":
-			var plot_id := int(destination.get("plot_id", -1))
-			var appeal := int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
+			var plot_id: int = int(destination.get("plot_id", -1))
+			var appeal: int = int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
 			weight = 10.0 + float(appeal)
 		destination["weight"] = weight
 		total_weight += weight
-	var roll := randf() * total_weight
+	var roll: float = randf() * total_weight
 	for destination in destinations:
 		roll -= float(destination["weight"])
 		if roll <= 0.0:
