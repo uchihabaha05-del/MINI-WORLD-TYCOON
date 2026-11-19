@@ -29,8 +29,8 @@ var interaction_label: Label
 var nearby_plot_id := -1
 var near_shop := false
 var camera_yaw := 0.0
-var camera_pitch := 34.0
-var camera_distance := 40.0
+var camera_pitch := 48.0
+var camera_distance := 34.0
 var camera_touch_index := -1
 var last_camera_touch := Vector2.ZERO
 var joystick_touch_index := -1
