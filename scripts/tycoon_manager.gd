@@ -144,7 +144,6 @@ func _create_interface() -> void:
 	business_summary_label.add_theme_font_size_override("font_size", 14)
 	top_box.add_child(business_summary_label)
 	mission_label = Label.new()
-	mission_label = Label.new()
 	mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mission_label.add_theme_font_size_override("font_size", 14)
 	quest_label = Label.new()
