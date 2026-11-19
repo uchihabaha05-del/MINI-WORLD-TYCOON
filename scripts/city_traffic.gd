@@ -28,7 +28,9 @@ func _spawn_traffic() -> void:
 		var is_vertical := i >= 4
 		var lane := -1.35 if i % 2 == 0 else 1.35
 		var vehicle := _make_vehicle(i)
+		var route_vertical := is_vertical
 		if i >= 6:
+			route_vertical = i % 2 != 0
 			var outer_lane := -1.35 if i % 2 == 0 else 1.35
 			var outer_axis := 66.0 if i % 2 == 0 else -66.0
 			if i % 2 == 0:
@@ -45,7 +47,7 @@ func _spawn_traffic() -> void:
 			vehicle.rotation_degrees.y = 90.0 if i % 2 == 0 else -90.0
 		add_child(vehicle)
 		vehicles.append(vehicle)
-		_drive_vehicle(vehicle, is_vertical, i % 2 == 0)
+		_drive_vehicle(vehicle, route_vertical, i % 2 == 0)
 
 func _make_vehicle(index: int) -> Node3D:
 	var vehicle := Node3D.new()
