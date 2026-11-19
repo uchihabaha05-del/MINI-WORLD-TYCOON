@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+**Visual Restart — Phase 1: city presentation overhaul**
+- Reworked building facades with vertical architectural piers, cornices, street-level shopfronts, canopies and rooftop HVAC details.
+- Added a paved MINI MARKET plaza with planters, shrubs, benches and a clear pedestrian approach.
+- Upgraded road presentation with stop lines and lane arrows at major junctions.
+- Applied reflective blue-tinted glazing and emissive streetlamp heads, plus refreshed environment tonemapping and daylight.
+- Existing economy, save files, plot ownership and gameplay scripts are preserved.
+
+
+
 **Milestone 35 — Godot parse-error repair**
 - Fixed the touch-camera drag vector type inference by declaring it explicitly as `Vector2`.
 - Removed a call to a nonexistent `_rebuild_projects()` method; project buttons are already created in `_create_hud()` and populated by `_refresh_ui()`.
