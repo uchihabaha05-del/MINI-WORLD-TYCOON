@@ -9,6 +9,7 @@ const LIFE_TICK := 20.0
 var manager: Node
 var population := BASE_POPULATION
 var happiness := 70
+var civic_demand_bonus := 0
 var population_label: Label
 var life_timer: Timer
 var visible_residents: Array[Node3D] = []
@@ -30,7 +31,7 @@ func get_happiness() -> int:
 	return happiness
 
 func get_demand_bonus() -> int:
-	return mini(5, int(population / 30.0))
+	return mini(8, int(population / 30.0) + civic_demand_bonus)
 
 func _recalculate_population() -> void:
 	population = BASE_POPULATION
