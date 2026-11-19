@@ -361,6 +361,8 @@ func _save_shop_state() -> void:
 	config.set_value("staff", "employee_hired", employee_hired)
 	config.set_value("staff", "payroll_paid_total", payroll_paid_total)
 	config.set_value("staff", "auto_restocked_total", auto_restocked_total)
+	config.set_value("sales", "total_sales", total_sales)
+	config.set_value("sales", "total_profit", total_profit)
 	for i in range(stock.size()):
 		config.set_value("inventory", "stock_%d" % i, stock[i])
 	config.save("user://shop_state.cfg")
@@ -372,6 +374,8 @@ func _load_shop_state() -> void:
 	employee_hired = bool(config.get_value("staff", "employee_hired", false))
 	payroll_paid_total = int(config.get_value("staff", "payroll_paid_total", 0))
 	auto_restocked_total = int(config.get_value("staff", "auto_restocked_total", 0))
+	total_sales = int(config.get_value("sales", "total_sales", 0))
+	total_profit = int(config.get_value("sales", "total_profit", 0))
 	for i in range(stock.size()):
 		stock[i] = maxi(0, int(config.get_value("inventory", "stock_%d" % i, stock[i])))
 
