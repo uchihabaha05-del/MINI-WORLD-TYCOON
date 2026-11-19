@@ -153,4 +153,6 @@ func _load_state() -> void:
 		return
 	for i in range(connected_plots.size()):
 		connected_plots[i] = bool(config.get_value("utilities", "connected_%d" % i, false))
-	# Keep saved connections only for plots that still exist in the current city data.
+	# The array is sized from the current plot list before loading, so removed plot slots are ignored.
+
+# End of utility save loader.
