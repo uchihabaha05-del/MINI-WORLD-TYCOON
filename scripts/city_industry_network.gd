@@ -27,6 +27,7 @@ var failed_shipments := 0
 var total_trade_revenue := 0
 var total_trade_cost := 0
 var active_shipments := 0
+var pending_shipments: Array[Dictionary] = []
 var shipment_cycle := 0
 var profession_counts: Dictionary = {}
 var hub_nodes: Array[Node3D] = []
@@ -40,7 +41,10 @@ func _ready() -> void:
 	_load_state()
 	_create_hubs()
 	_create_panel()
+	active_shipments = pending_shipments.size()
 	_refresh_ui()
+	for order in pending_shipments:
+		_spawn_cargo_vehicle(int(order.get("from", 0)), int(order.get("to", 0)), order)
 
 func _create_hubs() -> void:
 	var colors: Array[Color] = [Color("#b78b55"), Color("#5795aa"), Color("#718b70")]
@@ -128,8 +132,9 @@ func _dispatch_shipment() -> void:
 	var goods_id := shipment_cycle % GOODS.size()
 	var amount := 8 + int(hubs[0]) * 2 + int(hubs[1]) * 3 + int(hubs[2]) * 4
 	var reward := BASE_REWARD + amount * 7 + _hub_bonus()
-	var order := {"from": from_id, "to": to_id, "goods": goods_id, "amount": amount, "reward": reward}
-	active_shipments += 1
+	var order := {"id": shipment_cycle, "from": from_id, "to": to_id, "goods": goods_id, "amount": amount, "reward": reward}
+	pending_shipments.append(order)
+	active_shipments = pending_shipments.size()
 	status_label.text = "Груз %s ×%d: %s → %s. Машина в пути" % [GOODS[goods_id], amount, DISTRICTS[from_id], DISTRICTS[to_id]]
 	_spawn_cargo_vehicle(from_id, to_id, order)
 	_save_state()
@@ -168,7 +173,13 @@ func _spawn_cargo_vehicle(from_id: int, to_id: int, order: Dictionary) -> void:
 func _complete_shipment(order: Dictionary, van: Node3D) -> void:
 	if is_instance_valid(van):
 		van.queue_free()
-	active_shipments = maxi(0, active_shipments - 1)
+	var shipment_id := int(order.get("id", -1))
+	for i in range(pending_shipments.size() - 1, -1, -1):
+		if int(pending_shipments[i].get("id", -2)) == shipment_id:
+			pending_shipments.remove_at(i)
+			break
+	active_shipments = pending_shipments.size()
+	_save_state()
 	var reward := int(order.get("reward", BASE_REWARD))
 	var demand_bonus := 0
 	if hubs[0]:
@@ -281,6 +292,7 @@ func _save_state() -> void:
 	config.set_value("trade", "revenue", total_trade_revenue)
 	config.set_value("trade", "cost", total_trade_cost)
 	config.set_value("trade", "cycle", shipment_cycle)
+	config.set_value("trade", "pending_shipments", pending_shipments)
 	config.save(SAVE_PATH)
 
 func _load_state() -> void:
@@ -296,6 +308,11 @@ func _load_state() -> void:
 	total_trade_revenue = maxi(0, int(config.get_value("trade", "revenue", 0)))
 	total_trade_cost = maxi(0, int(config.get_value("trade", "cost", 0)))
 	shipment_cycle = maxi(0, int(config.get_value("trade", "cycle", 0)))
+	var saved_shipments: Variant = config.get_value("trade", "pending_shipments", [])
+	if saved_shipments is Array:
+		for saved_order in saved_shipments:
+			if saved_order is Dictionary and int(saved_order.get("from", -1)) in range(DISTRICTS.size()) and int(saved_order.get("to", -1)) in range(DISTRICTS.size()) and int(saved_order.get("goods", -1)) in range(GOODS.size()):
+				pending_shipments.append(saved_order)
 
 func _add_box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
 	var part := MeshInstance3D.new()
