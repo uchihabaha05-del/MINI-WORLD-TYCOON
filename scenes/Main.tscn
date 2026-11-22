@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_builder.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/tycoon_manager.gd" id="2_tycoon"]
@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scripts/market_economy.gd" id="19_market"]
 [ext_resource type="Script" path="res://scripts/city_visual_upgrade.gd" id="20_visual"]
 [ext_resource type="Script" path="res://scripts/city_atmosphere.gd" id="21_atmosphere"]
+[ext_resource type="Script" path="res://scripts/city_tourism.gd" id="22_tourism"]
 
 [sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
@@ -96,6 +97,9 @@ script = ExtResource("20_visual")
 
 [node name="CityAtmosphere" type="Node3D" parent="."]
 script = ExtResource("21_atmosphere")
+
+[node name="CityTourism" type="Node3D" parent="."]
+script = ExtResource("22_tourism")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_City")
