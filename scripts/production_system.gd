@@ -261,13 +261,13 @@ func _production_tick() -> void:
 			factories[i]["failed_shifts"] = int(factories[i].get("failed_shifts", 0)) + 1
 			state_changed = true
 			continue
-		if not _has_output_capacity(OUTPUT_PER_BATCH[i]):
+		var level := int(factories[i].get("level", 1))
+		var output := OUTPUT_PER_BATCH[i] + (level - 1) * 2 + int((workers - 1) / 2)
+		if not _has_output_capacity(output):
 			status_label.text = "Склад магазина заполнен: производство %s приостановлено" % PRODUCT_NAMES[i]
 			state_changed = true
 			continue
 		_consume_recipe(i)
-		var level := int(factories[i].get("level", 1))
-		var output := OUTPUT_PER_BATCH[i] + (level - 1) * 2 + int((workers - 1) / 2)
 		_add_to_shop_stock(i, output)
 		factories[i]["batches"] = int(factories[i].get("batches", 0)) + 1
 		factories[i]["produced"] = int(factories[i].get("produced", 0)) + output
