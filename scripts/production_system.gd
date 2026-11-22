@@ -249,15 +249,18 @@ func _production_tick() -> void:
 	if shop == null:
 		return
 	var produced_any := false
+	var state_changed := false
 	for i in range(factories.size()):
 		if not _is_factory_built(i) or not bool(factories[i].get("active", true)):
 			continue
 		var workers := int(factories[i].get("workers", 0))
 		if workers <= 0 or not _has_recipe_materials(i):
 			factories[i]["failed_shifts"] = int(factories[i].get("failed_shifts", 0)) + 1
+			state_changed = true
 			continue
 		if not _has_output_capacity(OUTPUT_PER_BATCH[i]):
 			status_label.text = "Склад магазина заполнен: производство %s приостановлено" % PRODUCT_NAMES[i]
+			state_changed = true
 			continue
 		_consume_recipe(i)
 		var level := int(factories[i].get("level", 1))
@@ -268,9 +271,11 @@ func _production_tick() -> void:
 		total_batches += 1
 		total_units_produced += output
 		produced_any = true
+		state_changed = true
 	if produced_any:
-		_save_state()
 		_refresh_shop()
+	if state_changed:
+		_save_state()
 		_refresh_ui()
 
 func _has_recipe_materials(factory_id: int) -> bool:
@@ -387,7 +392,7 @@ func _recipe_text(factory_id: int) -> String:
 		var amount := int(RAW_PER_BATCH[factory_id][raw_id])
 		if amount > 0:
 			parts.append("%s ×%d" % [RAW_NAMES[raw_id], amount])
-	return ", ".join(parts)
+	return ", ".join(PackedStringArray(parts))
 
 func _refresh_shop() -> void:
 	if shop != null and shop.has_method("_save_shop_state"):
@@ -433,7 +438,9 @@ func _load_state() -> void:
 	total_factory_revenue = maxi(0, int(config.get_value("production", "factory_revenue", 0)))
 	var saved_factories: Variant = config.get_value("production", "factories", factories)
 	if saved_factories is Array and saved_factories.size() == factories.size():
-		factories = saved_factories
+		for i in range(factories.size()):
+			if saved_factories[i] is Dictionary:
+				factories[i] = saved_factories[i]
 
 func _add_box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
 	var part := MeshInstance3D.new()
