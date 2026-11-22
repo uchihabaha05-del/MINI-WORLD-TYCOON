@@ -503,6 +503,7 @@ func _start_customer_timer() -> void:
 	customer_timer.autostart = true
 	customer_timer.timeout.connect(_spawn_customer)
 	add_child(customer_timer)
+	_update_customer_interval()
 
 func _spawn_customer() -> void:
 	_update_customer_interval()
