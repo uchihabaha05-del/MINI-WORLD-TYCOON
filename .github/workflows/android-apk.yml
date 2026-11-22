@@ -45,11 +45,14 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
 
-      - name: Install Godot 4.7.0
-        uses: chickensoft-games/setup-godot@v2
-        with:
-          version: 4.7.0
-          use-mono: false
+      - name: Install standard Godot 4.7.0 (non-.NET)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/godot" "$HOME/bin"
+          curl -fL "https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot/godot.zip" -d "$RUNNER_TEMP/godot"
+          install -m 0755 "$RUNNER_TEMP/godot/Godot_v4.7-stable_linux.x86_64" "$HOME/bin/godot"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
 
       - name: Install Godot Android export templates
         shell: bash
