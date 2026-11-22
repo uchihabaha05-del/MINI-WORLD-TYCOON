@@ -18,6 +18,11 @@ var rng := RandomNumberGenerator.new()
 var resident_total := 0
 var happy_customer_count := 0
 var disappointed_customer_count := 0
+var city_loyalty := 65
+var city_event_multiplier := 1.0
+var city_event_name := "Обычный день"
+var event_timer: Timer
+var event_end_timer: Timer
 
 func _ready() -> void:
 	rng.randomize()
@@ -26,12 +31,29 @@ func _ready() -> void:
 	_recalculate_population()
 	_spawn_resident_group()
 	_start_life_timer()
+	_start_city_events()
 
 func get_population() -> int:
 	return population
 
 func get_happiness() -> int:
 	return happiness
+
+func get_city_loyalty() -> int:
+	return city_loyalty
+
+func get_city_event_multiplier() -> float:
+	return city_event_multiplier
+
+func get_city_event_name() -> String:
+	return city_event_name
+
+func get_customer_capacity() -> int:
+	return clampi(4 + int(population / 45.0) + int(happiness / 40.0), 4, 12)
+
+func get_customer_interval_multiplier() -> float:
+	var loyalty_factor := 0.85 + float(city_loyalty) / 400.0
+	return clampf(loyalty_factor, 0.9, 1.1)
 
 func get_demand_bonus() -> int:
 	return mini(8, int(population / 30.0) + civic_demand_bonus)
@@ -69,9 +91,11 @@ func record_customer_result(success: bool) -> void:
 	if success:
 		happy_customer_count += 1
 		happiness = mini(100, happiness + 1)
+		city_loyalty = mini(100, city_loyalty + 1)
 	else:
 		disappointed_customer_count += 1
 		happiness = maxi(35, happiness - 3)
+		city_loyalty = maxi(20, city_loyalty - 2)
 	_refresh_hud()
 
 
@@ -97,6 +121,35 @@ func _create_hud() -> void:
 	population_label = Label.new()
 	population_label.add_theme_font_size_override("font_size", 17)
 	panel.add_child(population_label)
+
+func _start_city_events() -> void:
+	event_timer = Timer.new()
+	event_timer.wait_time = 75.0
+	event_timer.autostart = true
+	event_timer.timeout.connect(_trigger_city_event)
+	add_child(event_timer)
+	event_end_timer = Timer.new()
+	event_end_timer.one_shot = true
+	event_end_timer.timeout.connect(_finish_city_event)
+	add_child(event_end_timer)
+
+func _trigger_city_event() -> void:
+	var events := [
+		{"name": "Ярмарка выходного дня", "multiplier": 1.25, "happiness": 2},
+		{"name": "Городской фестиваль", "multiplier": 1.4, "happiness": 3},
+		{"name": "Тихий торговый день", "multiplier": 0.9, "happiness": 0}
+	]
+	var event: Dictionary = events[rng.randi_range(0, events.size() - 1)]
+	city_event_name = String(event["name"])
+	city_event_multiplier = float(event["multiplier"])
+	happiness = mini(100, happiness + int(event["happiness"]))
+	event_end_timer.start(35.0)
+	_refresh_hud()
+
+func _finish_city_event() -> void:
+	city_event_name = "Обычный день"
+	city_event_multiplier = 1.0
+	_refresh_hud()
 
 func _start_life_timer() -> void:
 	life_timer = Timer.new()
