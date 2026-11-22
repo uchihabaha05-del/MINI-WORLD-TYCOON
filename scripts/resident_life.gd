@@ -35,8 +35,8 @@ func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
 	city_life = get_parent().get_node_or_null("CityPopulation")
 	transport = get_parent().get_node_or_null("PublicTransport")
-	_load_state()
 	_create_residents()
+	_load_state()
 	_create_hud()
 	_start_decision_timer()
 	_refresh_hud()
@@ -301,8 +301,12 @@ func _load_state() -> void:
 	total_bus_trips = maxi(0, int(config.get_value("life", "total_bus_trips", 0)))
 	total_money_spent = maxi(0, int(config.get_value("life", "total_money_spent", 0)))
 	for i in range(RESIDENT_COUNT):
-		resident_mood.append(clampi(int(config.get_value("residents", "mood_%d" % i, rng.randi_range(60, 90))), 20, 100))
-		resident_wallet.append(clampi(int(config.get_value("residents", "wallet_%d" % i, rng.randi_range(20, 70))), 0, 100))
+		if i < resident_mood.size():
+			resident_mood[i] = clampi(int(config.get_value("residents", "mood_%d" % i, resident_mood[i])), 20, 100)
+		if i < resident_wallet.size():
+			resident_wallet[i] = clampi(int(config.get_value("residents", "wallet_%d" % i, resident_wallet[i])), 0, 100)
+		if i < resident_visits.size():
+			resident_visits[i] = maxi(0, int(config.get_value("residents", "visits_%d" % i, 0)))
 
 func _mat(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
