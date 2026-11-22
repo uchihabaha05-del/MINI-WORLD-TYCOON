@@ -1,0 +1,87 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.gd"
+      - "**.tscn"
+      - "**.tres"
+      - "**.res"
+      - "**.png"
+      - "**.jpg"
+      - "**.webp"
+      - "project.godot"
+      - "export_presets.cfg"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Export MINI WORLD TYCOON APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
+
+      - name: Install Godot 4.7.0
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-mono: false
+
+      - name: Install Godot Android export templates
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.7.stable"
+          curl -fL "https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_export_templates.tpz" -o "$RUNNER_TEMP/godot_export_templates.tpz"
+          mkdir -p "$RUNNER_TEMP/godot_export_templates"
+          unzip -q "$RUNNER_TEMP/godot_export_templates.tpz" -d "$RUNNER_TEMP/godot_export_templates"
+          cp -R "$RUNNER_TEMP/godot_export_templates/templates/." "$HOME/.local/share/godot/export_templates/4.7.stable/"
+
+      - name: Configure Godot Android SDK paths and debug signing
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/godot" "$HOME/.android"
+          printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/android_sdk_path = "%s"\nexport/android/java_sdk_path = "%s"\n' "$ANDROID_HOME" "$JAVA_HOME" > "$HOME/.config/godot/editor_settings-4.tres"
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
+
+      - name: Verify Godot and import project
+        run: |
+          godot --version
+          godot --headless --editor --path . --import --quit
+
+      - name: Export debug APK
+        run: |
+          mkdir -p build
+          godot --headless --path . --export-debug "Android" build/MINI-WORLD-TYCOON.apk
+          test -s build/MINI-WORLD-TYCOON.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MINI-WORLD-TYCOON-Android-debug
+          path: build/MINI-WORLD-TYCOON.apk
+          if-no-files-found: error
+          retention-days: 14
