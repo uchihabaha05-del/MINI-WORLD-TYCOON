@@ -133,4 +133,4 @@ func _update_atmosphere() -> void:
 			lamp.light_energy = 0.72 * clampf((night_factor - 0.25) * 2.2, 0.0, 1.0)
 	if weather_label != null:
 		var period := "Ночь" if daylight < 0.25 else ("Вечер" if daylight < 0.48 else ("Утро" if day_phase < 0.5 else "День"))
-		weather_label.text = "\u{1F305} %s  •  %02d:%02d\nПогода: %s" % [period, int(day_phase * 24.0), int(fposmod(day_phase * 1440.0, 60.0)), WEATHER_NAMES[weather_index]]
+		weather_label.text = "🌅 %s  •  %02d:%02d\nПогода: %s" % [period, int(day_phase * 24.0), int(fposmod(day_phase * 1440.0, 60.0)), WEATHER_NAMES[weather_index]]
