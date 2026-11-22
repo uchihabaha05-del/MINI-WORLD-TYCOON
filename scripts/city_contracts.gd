@@ -68,10 +68,11 @@ func _track_sales() -> void:
 		return
 	progress += gained
 	lifetime_sales += gained
-	var target := TARGETS[mini(contract_index, TARGETS.size() - 1)]
-	if progress >= target:
+	var completed_any := false
+	while progress >= TARGETS[mini(contract_index, TARGETS.size() - 1)]:
 		_complete_contract()
-	else:
+		completed_any = true
+	if not completed_any or progress > 0:
 		_save_state()
 		_refresh_hud()
 
