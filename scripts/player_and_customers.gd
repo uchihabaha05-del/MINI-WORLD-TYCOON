@@ -697,7 +697,7 @@ func _refresh_customer_label() -> void:
 	var cafe_visits := int(visits_by_business.get("Кафе", 0))
 	var restaurant_visits := int(visits_by_business.get("Ресторан", 0))
 	var workshop_visits := int(visits_by_business.get("Мастерская", 0))
-	customer_label.text = "Гости: %d / %d  •  Всего: %d\nMINI MARKET: %d  Кафе: %d\nРесторан: %d  Мастерская: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count, shop_visits, cafe_visits, restaurant_visits, workshop_visits]
+	customer_label.text = "Гости: %d / %d  •  Всего: %d\nMINI MARKET: %d  Кафе: %d\nРесторан: %d  Мастерская: %d" % [active_customers, _get_customer_capacity(), customer_count, shop_visits, cafe_visits, restaurant_visits, workshop_visits]
 
 func _material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
