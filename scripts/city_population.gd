@@ -78,6 +78,9 @@ func get_demand_bonus() -> int:
 
 func get_business_demand(business_type: String) -> int:
 	var demand := 55 + int(maxi(0, population - BASE_POPULATION) / 8.0)
+	var resident_life := get_parent().get_node_or_null("ResidentLife")
+	if resident_life != null and resident_life.has_method("get_average_resident_mood"):
+		demand += int(round(float(int(resident_life.call("get_average_resident_mood")) - 70) * 0.08))
 	var city_services := get_parent().get_node_or_null("CityServices")
 	if city_services != null and city_services.has_method("get_service_quality"):
 		demand += int(float(city_services.call("get_service_quality")) * 0.05)
