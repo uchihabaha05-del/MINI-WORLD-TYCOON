@@ -629,11 +629,18 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 			rival_system.call("record_rival_visit", rival_id)
 		return
 	if business == "MINI MARKET":
+		var sale_completed := false
 		if store_system and store_system.has_method("serve_customer"):
-			store_system.call("serve_customer", wanted_product)
+			sale_completed = bool(store_system.call("serve_customer", wanted_product))
+		var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+		if city_life and city_life.has_method("record_customer_result"):
+			city_life.call("record_customer_result", sale_completed)
 		return
 	if tycoon_manager == null:
 		return
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+	if city_life and city_life.has_method("record_customer_result"):
+		city_life.call("record_customer_result", true)
 	var happiness_factor := 1.0
 	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 	if city_life and city_life.has_method("get_happiness"):
