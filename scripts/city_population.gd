@@ -114,7 +114,11 @@ func get_business_demand(business_type: String) -> int:
 	return clampi(demand, 20, 100)
 
 func get_business_demand_multiplier(business_type: String) -> float:
-	return 0.75 + float(get_business_demand(business_type)) / 200.0
+	var district_bonus := 0.0
+	var expansion := get_parent().get_node_or_null("DistrictExpansion")
+	if expansion != null and expansion.has_method("get_district_business_multiplier"):
+		district_bonus = float(expansion.call("get_district_business_multiplier", business_type))
+	return 0.75 + float(get_business_demand(business_type)) / 200.0 + district_bonus
 
 func record_customer_result(success: bool) -> void:
 	if success:
