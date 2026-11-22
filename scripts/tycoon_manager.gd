@@ -38,6 +38,7 @@ var apartments_button: Button
 var restaurant_button: Button
 var workshop_button: Button
 var upgrade_button: Button
+var repair_button: Button
 var hire_worker_button: Button
 var staff_label: Label
 var appeal_label: Label
@@ -126,7 +127,8 @@ func _create_plots() -> void:
 			"building": "",
 			"level": 0,
 			"workers": 0,
-			"appeal": 50
+			"appeal": 50,
+			"condition": 100
 		})
 
 func _create_interface() -> void:
@@ -233,6 +235,9 @@ func _create_interface() -> void:
 	upgrade_button.text = "Улучшить здание"
 	upgrade_button.pressed.connect(_upgrade_selected_plot)
 	content.add_child(upgrade_button)
+	repair_button = Button.new()
+	repair_button.pressed.connect(_repair_selected_building)
+	content.add_child(repair_button)
 	staff_label = Label.new()
 	staff_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(staff_label)
@@ -335,6 +340,32 @@ func _upgrade_selected_plot() -> void:
 	_refresh_all_plots()
 	_refresh_ui()
 
+func _repair_selected_building() -> void:
+	if not _has_selection():
+		return
+	var plot: Dictionary = plots[selected_plot]
+	if String(plot.get("building", "")).is_empty():
+		return
+	var condition := int(plot.get("condition", 100))
+	if condition >= 100:
+		return
+	var repair_cost := (100 - condition) * 3
+	if cash < repair_cost:
+		status_label.text = "Для ремонта нужно ещё %d монет." % (repair_cost - cash)
+		return
+	cash -= repair_cost
+	plot["condition"] = 100
+	plots[selected_plot] = plot
+	status_label.text = "Здание полностью отремонтировано!"
+	_save_game()
+	_refresh_ui()
+
+func _get_building_maintenance(plot: Dictionary) -> int:
+	var building_type := String(plot.get("building", ""))
+	if building_type.is_empty() or building_type == "Апартаменты":
+		return 0
+	return maxi(1, int(plot.get("level", 1)) * 2)
+
 func _start_income_timer() -> void:
 	income_timer = Timer.new()
 	income_timer.wait_time = INCOME_INTERVAL
@@ -349,6 +380,8 @@ func _get_building_cycle_income(plot: Dictionary) -> int:
 	var base_income := int(BUILDINGS[building_type]["income"]) * int(plot.get("level", 1))
 	if building_type == "Апартаменты":
 		return base_income
+	var condition := int(plot.get("condition", 100))
+	var condition_factor := 0.65 + float(condition) / 285.0
 	var city_life := get_parent().get_node_or_null("CityPopulation")
 	var demand_factor := 1.0
 	var happiness_factor := 1.0
@@ -357,17 +390,24 @@ func _get_building_cycle_income(plot: Dictionary) -> int:
 			demand_factor = float(city_life.call("get_business_demand_multiplier", building_type))
 		if city_life.has_method("get_happiness"):
 			happiness_factor = 0.8 + float(city_life.call("get_happiness")) / 350.0
-	return maxi(0, roundi(float(base_income) * demand_factor * happiness_factor))
+	return maxi(0, roundi(float(base_income) * demand_factor * happiness_factor * condition_factor))
 
 func _collect_income() -> void:
 	var earned := 20 # Starting MINI MARKET business.
 	var payroll := 0
 	var worker_bonus := 0
-	for plot in plots:
+	var maintenance_total := 0
+	for plot_index in range(plots.size()):
+		var plot: Dictionary = plots[plot_index]
 		var building_type := String(plot["building"])
 		if not building_type.is_empty() and BUILDINGS.has(building_type):
 			earned += _get_building_cycle_income(plot)
 			payroll += int(plot.get("workers", 0)) * WORKER_SALARY
+			maintenance_total += _get_building_maintenance(plot)
+			if building_type != "Апартаменты":
+				var wear := maxi(1, 3 - int(plot.get("workers", 0)))
+				plot["condition"] = maxi(0, int(plot.get("condition", 100)) - wear)
+				plots[plot_index] = plot
 	if cash >= payroll:
 		for plot in plots:
 			var building_type := String(plot["building"])
@@ -375,11 +415,11 @@ func _collect_income() -> void:
 				worker_bonus += int(plot.get("workers", 0)) * WORKER_BONUS
 		cash -= payroll
 		earned += worker_bonus
-		cash += earned
-		status_label.text = "Доход +%d, зарплаты -%d за цикл" % [earned, payroll]
+		cash += earned - maintenance_total
+		status_label.text = "Доход +%d • зарплаты -%d • обслуживание -%d" % [earned, payroll, maintenance_total]
 	else:
-		cash += earned
-		status_label.text = "Доход +%d • не хватает на зарплаты: %d" % [earned, payroll]
+		cash += earned - maintenance_total
+		status_label.text = "Доход +%d • обслуживание -%d • не хватает на зарплаты: %d" % [earned, maintenance_total, payroll]
 	if tutorial_step == 3:
 		tutorial_step = 4
 		status_label.text = "Ура! Ты заработал первые монетки! 🎉"
@@ -486,6 +526,7 @@ func _refresh_ui() -> void:
 		restaurant_button.visible = false
 		workshop_button.visible = false
 		upgrade_button.visible = false
+		repair_button.visible = false
 		staff_label.visible = false
 		hire_worker_button.visible = false
 		appeal_label.visible = false
@@ -513,6 +554,9 @@ func _refresh_ui() -> void:
 	workshop_button.text = "Мастерская · 800" if _count_buildings() >= 3 else "Мастерская 🔒 (3 здания)"
 	restaurant_button.text = "Ресторан · 1100" if _count_buildings() >= 4 else "Ресторан 🔒 (4 здания)"
 	upgrade_button.visible = owned and not building_type.is_empty()
+	repair_button.visible = owned and not building_type.is_empty() and int(plot.get("condition", 100)) < 100
+	repair_button.text = "Ремонт здания — %d монет" % ((100 - int(plot.get("condition", 100))) * 3)
+	repair_button.disabled = cash < ((100 - int(plot.get("condition", 100))) * 3)
 	var has_business := owned and not building_type.is_empty() and building_type != "Апартаменты"
 	var worker_count := int(plot.get("workers", 0))
 	var worker_limit := maxi(1, int(plot["level"]) * MAX_WORKERS_PER_LEVEL)
@@ -535,8 +579,8 @@ func _refresh_ui() -> void:
 	else:
 		var definition: Dictionary = BUILDINGS[building_type]
 		var level := int(plot["level"])
-		plot_info.text = "Ты построил: %s!\nУровень: %d • Базовый доход: %d за 10 секунд.\nСпрос города и счастье жителей влияют на фактический доход. Улучшение: %d." % [
-			building_type, level, _get_building_cycle_income(plot), 500 * level
+		plot_info.text = "Ты построил: %s!\nУровень: %d • Доход: %d за 10 секунд.\nСостояние: %d%% • Обслуживание: %d за цикл.\nУлучшение: %d." % [
+			building_type, level, _get_building_cycle_income(plot), int(plot.get("condition", 100)), _get_building_maintenance(plot), 500 * level
 		]
 	upgrade_button.text = "Улучшить — %d монет" % (500 * int(plot["level"]))
 	upgrade_button.disabled = cash < 500 * int(plot["level"])
@@ -727,6 +771,7 @@ func _save_game() -> void:
 		config.set_value("plots", "level_%d" % i, int(plot["level"]))
 		config.set_value("plots", "workers_%d" % i, int(plot.get("workers", 0)))
 		config.set_value("plots", "appeal_%d" % i, int(plot.get("appeal", 50)))
+		config.set_value("plots", "condition_%d" % i, int(plot.get("condition", 100)))
 	config.save("user://tycoon_save.cfg")
 
 func _load_game() -> void:
@@ -746,6 +791,7 @@ func _load_game() -> void:
 		plot["level"] = int(config.get_value("plots", "level_%d" % i, 0))
 		plot["workers"] = maxi(0, int(config.get_value("plots", "workers_%d" % i, 0)))
 		plot["appeal"] = clampi(int(config.get_value("plots", "appeal_%d" % i, 50)), 0, 100)
+		plot["condition"] = clampi(int(config.get_value("plots", "condition_%d" % i, 100)), 0, 100)
 		plots[i] = plot
 	if tutorial_step == 0:
 		for saved_plot in plots:
