@@ -60,7 +60,7 @@ func get_warehouse_capacity() -> int:
 func _get_total_stock() -> int:
 	if shop == null:
 		return 0
-	var values: Array = shop.get("stock")
+	var values: Array[int] = shop.get("stock")
 	var total := 0
 	for value in values:
 		total += int(value)
@@ -167,7 +167,7 @@ func _order_bulk(product_id: int) -> void:
 func _auto_order_tick() -> void:
 	if not auto_order_enabled or shop == null:
 		return
-	var stock: Array = shop.get("stock")
+	var stock: Array[int] = shop.get("stock")
 	for i in range(stock.size()):
 		if int(stock[i]) <= LOW_STOCK_LEVEL and not _has_pending_product(i):
 			_place_order(i, BULK_AMOUNT, true)
