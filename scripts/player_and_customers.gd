@@ -339,8 +339,6 @@ func _update_camera_pinch() -> void:
 	if camera_pinch_distance > 1.0 and new_distance > 1.0:
 		var pinch_delta := camera_pinch_distance - new_distance
 		camera_distance = clampf(camera_distance + pinch_delta * 0.045, 18.0, 64.0)
-		if camera_rig != null:
-			camera_rig.fov = clampf(camera_rig.fov - pinch_delta * 0.012, 42.0, 72.0)
 	camera_pinch_distance = new_distance
 
 func _update_joystick(screen_position: Vector2) -> void:
