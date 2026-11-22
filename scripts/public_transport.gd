@@ -95,6 +95,10 @@ func _start_timer() -> void:
 	timer.timeout.connect(_bus_departure)
 	add_child(timer)
 
+func register_commuters(count: int) -> void:
+	passengers_waiting = mini(MAX_PASSENGERS, passengers_waiting + maxi(0, count))
+	_update_status()
+
 func _bus_departure() -> void:
 	passengers_waiting = mini(MAX_PASSENGERS, passengers_waiting + randi_range(1, 3))
 	_update_status()
