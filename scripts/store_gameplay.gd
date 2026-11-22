@@ -301,7 +301,8 @@ func serve_customer(wanted_product: int = -1) -> bool:
 	stock[product_id] -= 1
 	var base_sale := int(PRODUCTS[product_id]["sell"])
 	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
-	var sale := int(round(float(base_sale + demand_bonus) * city_event_multiplier))
+	var shop_demand_factor := float(city_life.call("get_business_demand_multiplier", "Магазин")) if city_life and city_life.has_method("get_business_demand_multiplier") else 1.0
+	var sale := int(round(float(base_sale + demand_bonus) * city_event_multiplier * shop_demand_factor))
 	var cost := int(PRODUCTS[product_id]["buy"])
 	manager.set("cash", int(manager.get("cash")) + sale)
 	total_sales += 1
@@ -433,7 +434,8 @@ func _sphere(parent: Node3D, pos: Vector3, radius: float, color: Color) -> void:
 func _refresh_shop_ui() -> void:
 	for i in range(stock_labels.size()):
 		stock_labels[i].text = "%s: %d шт." % [PRODUCTS[i]["name"], stock[i]]
-	sales_label.text = "Продажи: %d  •  Прибыль: %d" % [total_sales, total_profit]
+	var demand := int(city_life.call("get_business_demand", "Магазин")) if city_life and city_life.has_method("get_business_demand") else 55
+	sales_label.text = "Продажи: %d  •  Прибыль: %d\\nСпрос на магазин: %d/100" % [total_sales, total_profit, demand]
 	if employee_hired:
 		employee_label.text = "Сотрудник нанят • зарплата %d / 10 сек. • пополнено: %d" % [EMPLOYEE_SALARY, auto_restocked_total]
 		hire_button.text = "Сотрудник работает"
