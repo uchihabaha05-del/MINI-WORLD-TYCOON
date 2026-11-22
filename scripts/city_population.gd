@@ -74,7 +74,11 @@ func get_customer_interval_multiplier() -> float:
 	return clampf(loyalty_factor, 0.9, 1.1)
 
 func get_demand_bonus() -> int:
-	return mini(8, int(population / 30.0) + civic_demand_bonus)
+	var district_bonus := 0
+	var expansion := get_parent().get_node_or_null("DistrictExpansion")
+	if expansion != null and expansion.has_method("get_demand_bonus"):
+		district_bonus = int(expansion.call("get_demand_bonus"))
+	return mini(12, int(population / 30.0) + civic_demand_bonus + district_bonus)
 
 func get_business_demand(business_type: String) -> int:
 	var demand := 55 + int(maxi(0, population - BASE_POPULATION) / 8.0)
@@ -127,6 +131,9 @@ func record_customer_result(success: bool) -> void:
 
 func _recalculate_population() -> void:
 	population = BASE_POPULATION
+	var expansion := get_parent().get_node_or_null("DistrictExpansion")
+	if expansion != null and expansion.has_method("get_population_bonus"):
+		population += int(expansion.call("get_population_bonus"))
 	if manager != null:
 		for plot in manager.get("plots"):
 			if String(plot.get("building", "")) == "Апартаменты":
