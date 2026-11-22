@@ -227,6 +227,7 @@ func _service_tick() -> void:
 			city_life.set("happiness", maxi(35, int(city_life.get("happiness")) - 1))
 			if city_life.has_method("_save_city_state"):
 				city_life.call("_save_city_state")
+	_save_state()
 	manager.call("_save_game")
 	manager.call("_refresh_ui")
 	_refresh_hud()
