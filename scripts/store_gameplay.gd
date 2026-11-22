@@ -32,6 +32,7 @@ var auto_restocked_total := 0
 var delivery_pending: Array[bool] = [false, false, false]
 var delivery_label: Label
 var city_life: Node
+var market_economy: Node
 var city_event_multiplier: float = 1.0
 var shop_panel: PanelContainer
 
@@ -39,6 +40,7 @@ func _ready() -> void:
 	rng.randomize()
 	manager = get_parent().get_node_or_null("TycoonManager")
 	city_life = get_parent().get_node_or_null("CityPopulation")
+	market_economy = get_parent().get_node_or_null("MarketEconomy")
 	_load_shop_state()
 	_build_shelves()
 	_create_shop_interface()
@@ -303,7 +305,8 @@ func serve_customer(wanted_product: int = -1) -> bool:
 	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
 	var shop_demand_factor := float(city_life.call("get_business_demand_multiplier", "Магазин")) if city_life and city_life.has_method("get_business_demand_multiplier") else 1.0
 	var live_city_event := float(city_life.call("get_city_event_multiplier")) if city_life and city_life.has_method("get_city_event_multiplier") else 1.0
-	var sale := int(round(float(base_sale + demand_bonus) * city_event_multiplier * live_city_event * shop_demand_factor))
+	var market_factor := float(market_economy.call("get_retail_multiplier", product_id)) if market_economy != null and market_economy.has_method("get_retail_multiplier") else 1.0
+	var sale := int(round(float(base_sale + demand_bonus) * city_event_multiplier * live_city_event * shop_demand_factor * market_factor))
 	var cost := int(PRODUCTS[product_id]["buy"])
 	manager.set("cash", int(manager.get("cash")) + sale)
 	total_sales += 1
