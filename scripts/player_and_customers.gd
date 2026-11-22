@@ -642,7 +642,6 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 	if city_life and city_life.has_method("record_customer_result"):
 		city_life.call("record_customer_result", true)
 	var happiness_factor := 1.0
-	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 	if city_life and city_life.has_method("get_happiness"):
 		happiness_factor = 0.7 + float(city_life.call("get_happiness")) / 200.0
 	var appeal_factor := 1.0
