@@ -16,6 +16,8 @@ var life_timer: Timer
 var visible_residents: Array[Node3D] = []
 var rng := RandomNumberGenerator.new()
 var resident_total := 0
+var happy_customer_count := 0
+var disappointed_customer_count := 0
 
 func _ready() -> void:
 	rng.randomize()
@@ -34,13 +36,23 @@ func get_happiness() -> int:
 func get_demand_bonus() -> int:
 	return mini(8, int(population / 30.0) + civic_demand_bonus)
 
+func record_customer_result(success: bool) -> void:
+	if success:
+		happy_customer_count += 1
+		happiness = mini(100, happiness + 1)
+	else:
+		disappointed_customer_count += 1
+		happiness = maxi(35, happiness - 3)
+	_refresh_hud()
+
+
 func _recalculate_population() -> void:
 	population = BASE_POPULATION
 	if manager != null:
 		for plot in manager.get("plots"):
 			if String(plot.get("building", "")) == "Апартаменты":
 				population += RESIDENTS_PER_APARTMENT_LEVEL * int(plot.get("level", 1))
-	population_label.text = "Жители: %d   •   Счастье: %d%%\nСпрос города: +%d монет к продаже" % [population, happiness, get_demand_bonus()]
+	population_label.text = "Жители: %d   •   Счастье: %d%%\nСпрос: +%d монет • Довольны: %d • Недовольны: %d" % [population, happiness, get_demand_bonus(), happy_customer_count, disappointed_customer_count]
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
