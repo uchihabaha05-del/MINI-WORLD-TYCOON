@@ -342,6 +342,23 @@ func _start_income_timer() -> void:
 	income_timer.timeout.connect(_collect_income)
 	add_child(income_timer)
 
+func _get_building_cycle_income(plot: Dictionary) -> int:
+	var building_type := String(plot.get("building", ""))
+	if building_type.is_empty() or not BUILDINGS.has(building_type):
+		return 0
+	var base_income := int(BUILDINGS[building_type]["income"]) * int(plot.get("level", 1))
+	if building_type == "Апартаменты":
+		return base_income
+	var city_life := get_parent().get_node_or_null("CityPopulation")
+	var demand_factor := 1.0
+	var happiness_factor := 1.0
+	if city_life != null:
+		if city_life.has_method("get_business_demand_multiplier"):
+			demand_factor = float(city_life.call("get_business_demand_multiplier", building_type))
+		if city_life.has_method("get_happiness"):
+			happiness_factor = 0.8 + float(city_life.call("get_happiness")) / 350.0
+	return maxi(0, roundi(float(base_income) * demand_factor * happiness_factor))
+
 func _collect_income() -> void:
 	var earned := 20 # Starting MINI MARKET business.
 	var payroll := 0
@@ -349,8 +366,7 @@ func _collect_income() -> void:
 	for plot in plots:
 		var building_type := String(plot["building"])
 		if not building_type.is_empty() and BUILDINGS.has(building_type):
-			var definition: Dictionary = BUILDINGS[building_type]
-			earned += int(definition["income"]) * int(plot["level"])
+			earned += _get_building_cycle_income(plot)
 			payroll += int(plot.get("workers", 0)) * WORKER_SALARY
 	if cash >= payroll:
 		for plot in plots:
@@ -452,8 +468,8 @@ func _refresh_ui() -> void:
 		var business_type := String(business_plot["building"])
 		if not business_type.is_empty() and BUILDINGS.has(business_type):
 			business_count += 1
-			business_income += int(BUILDINGS[business_type]["income"]) * int(business_plot["level"])
-	business_summary_label.text = "Зданий: %d  •  Заработок: %d монет / 10 сек." % [business_count, business_income]
+			business_income += _get_building_cycle_income(business_plot)
+	business_summary_label.text = "Зданий: %d  •  Прогноз дохода: %d монет / 10 сек." % [business_count, business_income]
 	_update_city_progress(business_count)
 	cash_label.text = "💰  Мои монетки: %d" % cash
 	_update_mission()
@@ -519,8 +535,8 @@ func _refresh_ui() -> void:
 	else:
 		var definition: Dictionary = BUILDINGS[building_type]
 		var level := int(plot["level"])
-		plot_info.text = "Ты построил: %s!\nУровень: %d • Заработок: %d монет за 10 секунд. Улучшение: %d." % [
-			building_type, level, int(definition["income"]) * level, 500 * level
+		plot_info.text = "Ты построил: %s!\nУровень: %d • Базовый доход: %d за 10 секунд.\nСпрос города и счастье жителей влияют на фактический доход. Улучшение: %d." % [
+			building_type, level, _get_building_cycle_income(plot), 500 * level
 		]
 	upgrade_button.text = "Улучшить — %d монет" % (500 * int(plot["level"]))
 	upgrade_button.disabled = cash < 500 * int(plot["level"])
