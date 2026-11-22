@@ -390,7 +390,9 @@ func _get_building_cycle_income(plot: Dictionary) -> int:
 			demand_factor = float(city_life.call("get_business_demand_multiplier", building_type))
 		if city_life.has_method("get_happiness"):
 			happiness_factor = 0.8 + float(city_life.call("get_happiness")) / 350.0
-	return maxi(0, roundi(float(base_income) * demand_factor * happiness_factor * condition_factor))
+	var services := get_parent().get_node_or_null("CityServices")
+	var service_factor := float(services.call("get_business_service_multiplier")) if services != null and services.has_method("get_business_service_multiplier") else 1.0
+	return maxi(0, roundi(float(base_income) * demand_factor * happiness_factor * condition_factor * service_factor))
 
 func _collect_income() -> void:
 	var earned := 20 # Starting MINI MARKET business.
@@ -408,18 +410,18 @@ func _collect_income() -> void:
 				var wear := maxi(1, 3 - int(plot.get("workers", 0)))
 				plot["condition"] = maxi(0, int(plot.get("condition", 100)) - wear)
 				plots[plot_index] = plot
-	if cash >= payroll:
+	var payroll_paid := mini(cash, payroll)
+	if payroll_paid == payroll:
 		for plot in plots:
 			var building_type := String(plot["building"])
 			if not building_type.is_empty() and building_type != "Апартаменты":
 				worker_bonus += int(plot.get("workers", 0)) * WORKER_BONUS
-		cash -= payroll
-		earned += worker_bonus
-		cash += earned - maintenance_total
-		status_label.text = "Доход +%d • зарплаты -%d • обслуживание -%d" % [earned, payroll, maintenance_total]
 	else:
-		cash += earned - maintenance_total
-		status_label.text = "Доход +%d • обслуживание -%d • не хватает на зарплаты: %d" % [earned, maintenance_total, payroll]
+		status_label.text = "Не хватает на полную зарплату персонала"
+	var net_before_maintenance := earned + worker_bonus - payroll_paid
+	var maintenance_paid := mini(maxi(0, cash + net_before_maintenance), maintenance_total)
+	cash += net_before_maintenance - maintenance_paid
+	status_label.text = "Доход +%d • бонусы +%d • зарплаты -%d • обслуживание -%d" % [earned, worker_bonus, payroll_paid, maintenance_paid]
 	if tutorial_step == 3:
 		tutorial_step = 4
 		status_label.text = "Ура! Ты заработал первые монетки! 🎉"
