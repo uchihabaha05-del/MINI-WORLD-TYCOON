@@ -75,7 +75,7 @@ func _recalculate_population() -> void:
 		for plot in manager.get("plots"):
 			if String(plot.get("building", "")) == "Апартаменты":
 				population += RESIDENTS_PER_APARTMENT_LEVEL * int(plot.get("level", 1))
-	population_label.text = "Жители: %d   •   Счастье: %d%%\nСпрос: +%d монет • Довольны: %d • Недовольны: %d" % [population, happiness, get_demand_bonus(), happy_customer_count, disappointed_customer_count]
+	_refresh_hud()
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -110,7 +110,9 @@ func _on_city_tick() -> void:
 	_spawn_resident_group()
 
 func _refresh_hud() -> void:
-	population_label.text = "Жители: %d • Счастье: %d%%\nСпрос: +%d монет\n😊 Довольны: %d • 😟 Недовольны: %d" % [population, happiness, get_demand_bonus(), happy_customer_count, disappointed_customer_count]
+	if population_label == null:
+		return
+	population_label.text = "Жители: %d • Счастье: %d%%\nОбщий бонус спроса: +%d\nМагазины: %d • Кафе: %d • Рестораны: %d\n😊 Довольны: %d • 😟 Недовольны: %d" % [population, happiness, get_demand_bonus(), get_business_demand("Магазин"), get_business_demand("Кафе"), get_business_demand("Ресторан"), happy_customer_count, disappointed_customer_count]
 
 func _spawn_resident_group() -> void:
 	for resident in visible_residents:
