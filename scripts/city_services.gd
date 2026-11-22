@@ -260,6 +260,7 @@ func _try_city_incident() -> void:
 func _resolve_incident(reward: int) -> void:
 	active_incident = ""
 	incidents_resolved += 1
+	_save_state()
 	if manager != null:
 		manager.set("cash", int(manager.get("cash")) + reward)
 		manager.call("_save_game")
@@ -272,6 +273,7 @@ func _miss_incident(penalty: int) -> void:
 		return
 	active_incident = ""
 	incidents_missed += 1
+	_save_state()
 	if city_life != null:
 		city_life.set("happiness", maxi(35, int(city_life.get("happiness")) - penalty))
 		city_life.set("city_loyalty", maxi(20, int(city_life.get("city_loyalty")) - 1))
