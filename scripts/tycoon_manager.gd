@@ -172,13 +172,20 @@ func _create_interface() -> void:
 	panel.anchor_right = 0.0
 	panel.anchor_bottom = 1.0
 	panel.offset_left = 18
-	panel.offset_top = -220
+	panel.offset_top = -286
 	panel.offset_right = 440
 	panel.offset_bottom = -18
 	root.add_child(panel)
 
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(scroll)
+
 	var content := VBoxContainer.new()
-	panel.add_child(content)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
 	content.add_child(mission_label)
 	content.add_child(quest_label)
 	content.add_child(level_label)
