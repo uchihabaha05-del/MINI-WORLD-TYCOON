@@ -396,6 +396,9 @@ func _get_building_cycle_income(plot: Dictionary) -> int:
 
 func _collect_income() -> void:
 	var earned := 20 # Starting MINI MARKET business.
+	var district_expansion := get_parent().get_node_or_null("DistrictExpansion")
+	if district_expansion != null and district_expansion.has_method("get_income_bonus"):
+		earned += int(district_expansion.call("get_income_bonus"))
 	var payroll := 0
 	var worker_bonus := 0
 	var maintenance_total := 0
@@ -512,6 +515,9 @@ func _refresh_ui() -> void:
 			business_count += 1
 			business_income += _get_building_cycle_income(business_plot)
 			business_income -= _get_building_maintenance(business_plot)
+	var district_expansion := get_parent().get_node_or_null("DistrictExpansion")
+	if district_expansion != null and district_expansion.has_method("get_income_bonus"):
+		business_income += int(district_expansion.call("get_income_bonus"))
 	business_summary_label.text = "Зданий: %d  •  Чистый прогноз: %d монет / 10 сек." % [business_count, business_income]
 	_update_city_progress(business_count)
 	cash_label.text = "💰  Мои монетки: %d" % cash
