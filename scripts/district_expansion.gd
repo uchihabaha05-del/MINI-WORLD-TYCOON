@@ -83,6 +83,31 @@ func _create_hud() -> void:
 func _build_all_districts() -> void:
 	for i in range(DISTRICTS.size()):
 		_build_district_visual(i)
+		_build_district_access(i)
+
+func _build_district_access(index: int) -> void:
+	var data: Dictionary = DISTRICTS[index]
+	var center: Vector3 = data["position"]
+	var road_root := Node3D.new()
+	road_root.name = "DistrictAccess_%d" % index
+	road_root.position = Vector3.ZERO
+	add_child(road_root)
+	var road_color := Color("#424a50")
+	var sidewalk_color := Color("#bcb9ae")
+	if index == 0 or index == 3:
+		var direction := -1.0 if center.z > 0.0 else 1.0
+		_box(road_root, Vector3(6.0, 0.12, 13.0), Vector3(center.x, 0.04, center.z + direction * 6.5), road_color, "DistrictConnectorRoad")
+		for side in [-1.0, 1.0]:
+			_box(road_root, Vector3(1.2, 0.14, 13.0), Vector3(center.x + side * 3.6, 0.12, center.z + direction * 6.5), sidewalk_color, "DistrictConnectorSidewalk")
+	else:
+		var direction := -1.0 if center.x > 0.0 else 1.0
+		_box(road_root, Vector3(13.0, 0.12, 6.0), Vector3(center.x + direction * 6.5, 0.04, center.z), road_color, "DistrictConnectorRoad")
+		for side in [-1.0, 1.0]:
+			_box(road_root, Vector3(13.0, 0.14, 1.2), Vector3(center.x + direction * 6.5, 0.12, center.z + side * 3.6), sidewalk_color, "DistrictConnectorSidewalk")
+	var crossing := _box(road_root, Vector3(4.8, 0.035, 0.8), center + Vector3(0, 0.16, 0), Color("#eee9dc"), "DistrictCrossing")
+	crossing.rotation_degrees.y = 0.0 if index < 2 else 90.0
+	_cylinder(road_root, center + Vector3(-5.4, 1.7, -5.4), 0.08, 3.4, Color("#48545a"), "DistrictStreetLampPole")
+	_sphere(road_root, center + Vector3(-5.4, 3.45, -5.4), 0.28, Color("#ffe2a1"), "DistrictStreetLamp")
 
 func _build_district_visual(index: int) -> void:
 	var data: Dictionary = DISTRICTS[index]
@@ -105,6 +130,12 @@ func _build_district_visual(index: int) -> void:
 		_box(root, Vector3(2.2, 2.0, 0.12), Vector3(-2.4, 2.1, 0.48), Color("#456879"), "DistrictWindow")
 		_box(root, Vector3(3.8, 2.6, 3.5), Vector3(3.1, 1.5, 2.8), data["accent"], "DistrictAnnex")
 		_box(root, Vector3(4.0, 0.25, 3.7), Vector3(3.1, 2.9, 2.8), Color("#53636a"), "DistrictAnnexRoof")
+		if district_levels[index] >= 2:
+			_box(root, Vector3(3.8, 4.2, 3.6), Vector3(4.2, 2.3, -3.4), data["color"], "DistrictLevelTwoBuilding")
+			_box(root, Vector3(4.0, 0.3, 3.8), Vector3(4.2, 4.55, -3.4), data["accent"], "DistrictLevelTwoRoof")
+		if district_levels[index] >= 3:
+			_box(root, Vector3(0.18, 3.5, 0.18), Vector3(-6.2, 1.8, 5.8), Color("#596a71"), "DistrictMonumentPole")
+			_sphere(root, Vector3(-6.2, 3.8, 5.8), 0.65, data["accent"], "DistrictMonument")
 		for x in [-6.0, 6.0]:
 			_cylinder(root, Vector3(x, 1.0, -5.8), 0.16, 2.0, Color("#76543b"), "DistrictTreeTrunk")
 			_sphere(root, Vector3(x, 2.25, -5.8), 1.15, Color("#4d8953"), "DistrictTreeCanopy")
