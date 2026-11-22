@@ -145,7 +145,7 @@ func _apply_bonuses() -> void:
 	if city_life != null:
 		city_life.set("civic_demand_bonus", total_demand_bonus)
 		city_life.set("civic_happiness_bonus", total_happiness_bonus)
-		city_life.set("happiness", mini(100, 70 + total_happiness_bonus))
+		# Happiness is managed by CityPopulation and must persist between sessions.
 		if city_life.has_method("_refresh_hud"):
 			city_life.call("_refresh_hud")
 
