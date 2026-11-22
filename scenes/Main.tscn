@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/daily_rewards.gd" id="13_daily"]
 [ext_resource type="Script" path="res://scripts/city_development.gd" id="14_development"]
 [ext_resource type="Script" path="res://scripts/city_services.gd" id="15_services"]
+[ext_resource type="Script" path="res://scripts/resident_life.gd" id="16_residents"]
 
 [sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
@@ -72,6 +73,9 @@ script = ExtResource("14_development")
 
 [node name="CityServices" type="Node3D" parent="."]
 script = ExtResource("15_services")
+
+[node name="ResidentLife" type="Node3D" parent="."]
+script = ExtResource("16_residents")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_City")
