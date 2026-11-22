@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_builder.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/tycoon_manager.gd" id="2_tycoon"]
@@ -18,18 +18,20 @@
 [ext_resource type="Script" path="res://scripts/resident_life.gd" id="16_residents"]
 [ext_resource type="Script" path="res://scripts/supply_chain.gd" id="17_supply"]
 [ext_resource type="Script" path="res://scripts/production_system.gd" id="18_production"]
+[ext_resource type="Script" path="res://scripts/market_economy.gd" id="19_market"]
+[ext_resource type="Script" path="res://scripts/city_visual_upgrade.gd" id="20_visual"]
 
 [sub_resource type="Environment" id="Environment_City"]
 background_mode = 1
 background_color = Color(0.62, 0.78, 0.91, 1)
 ambient_light_source = 3
 ambient_light_color = Color(0.82, 0.88, 1, 1)
-ambient_light_energy = 0.48
+ambient_light_energy = 0.62
 tonemap_mode = 2
 adjustment_enabled = true
-adjustment_brightness = 0.94
-adjustment_contrast = 1.12
-adjustment_saturation = 0.92
+adjustment_brightness = 0.98
+adjustment_contrast = 1.08
+adjustment_saturation = 1.03
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_world")
@@ -82,15 +84,21 @@ script = ExtResource("16_residents")
 [node name="SupplyChain" type="Node3D" parent="."]
 script = ExtResource("17_supply")
 
+[node name="MarketEconomy" type="Node3D" parent="."]
+script = ExtResource("19_market")
+
 [node name="ProductionSystem" type="Node3D" parent="."]
 script = ExtResource("18_production")
+
+[node name="CityVisualUpgrade" type="Node3D" parent="."]
+script = ExtResource("20_visual")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_City")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-52, -28, 0)
-light_energy = 0.82
+light_energy = 1.0
 shadow_enabled = true
 directional_shadow_mode = 1
 
