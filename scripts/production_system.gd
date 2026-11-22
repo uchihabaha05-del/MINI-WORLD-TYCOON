@@ -362,7 +362,8 @@ func _refresh_ui() -> void:
 		"%s %d" % [RAW_NAMES[3], raw_stock[3]]
 	]))
 	for i in range(RAW_NAMES.size()):
-		raw_buttons[i].text = "Купить %s +20 — %d" % [RAW_NAMES[i], RAW_PRICES[i] * 20]
+		var live_price := int(market.call("get_raw_price", i)) if market != null and market.has_method("get_raw_price") else RAW_PRICES[i]
+		raw_buttons[i].text = "Купить %s +20 — %d" % [RAW_NAMES[i], live_price * 20]
 	for i in range(factories.size()):
 		var factory: Dictionary = factories[i]
 		var built := bool(factory.get("built", false))
