@@ -47,6 +47,8 @@ func _ready() -> void:
 	_create_warehouse()
 	_create_panel()
 	_start_logistics()
+	if not pending_orders.is_empty():
+		_spawn_truck()
 	_refresh_ui()
 
 func _process(_delta: float) -> void:
@@ -234,6 +236,7 @@ func _spawn_truck() -> void:
 func _delivery_tick() -> void:
 	if pending_orders.is_empty():
 		return
+	var changed := false
 	for i in range(pending_orders.size() - 1, -1, -1):
 		var order: Dictionary = pending_orders[i]
 		order["remaining"] = float(order.get("remaining", 0.0)) - 1.0
@@ -249,8 +252,9 @@ func _delivery_tick() -> void:
 	if pending_orders.is_empty() and is_instance_valid(active_truck):
 		active_truck.queue_free()
 		active_truck = null
-	_save_state()
-	_refresh_ui()
+	if changed:
+		_save_state()
+		_refresh_ui()
 
 func _complete_order(order: Dictionary) -> void:
 	var product_id := int(order.get("product", 0))
@@ -332,6 +336,8 @@ func _save_state() -> void:
 func _load_state() -> void:
 	var config := ConfigFile.new()
 	if config.load("user://supply_chain.cfg") != OK:
+		if shop != null:
+			last_sales_total = int(shop.get("total_sales"))
 		return
 	warehouse_level = clampi(int(config.get_value("warehouse", "level", 1)), 1, 10)
 	auto_order_enabled = bool(config.get_value("warehouse", "auto_order", false))
