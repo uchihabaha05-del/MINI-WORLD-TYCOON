@@ -12,7 +12,14 @@ const DISTRICTS: Array[Dictionary] = [
 
 var manager: Node
 var unlocked: Array[bool] = [false, false, false, false]
+var district_levels: Array[int] = [0, 0, 0, 0]
 var buttons: Array[Button] = []
+var upgrade_buttons: Array[Button] = []
+var event_label: Label
+var event_timer: Timer
+var event_end_timer: Timer
+var event_multiplier := 1.0
+var event_name := "Обычный день"
 var summary_label: Label
 var status_label: Label
 var income_timer: Timer
@@ -23,6 +30,7 @@ func _ready() -> void:
 	_build_all_districts()
 	_create_hud()
 	_refresh_hud()
+	_start_district_events()
 	income_timer = Timer.new()
 	income_timer.wait_time = TICK_SECONDS
 	income_timer.autostart = true
@@ -63,6 +71,14 @@ func _create_hud() -> void:
 		button.pressed.connect(_unlock_district.bind(i))
 		buttons.append(button)
 		content.add_child(button)
+		var upgrade := Button.new()
+		upgrade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		upgrade.pressed.connect(_upgrade_district.bind(i))
+		upgrade_buttons.append(upgrade)
+		content.add_child(upgrade)
+	event_label = Label.new()
+	event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(event_label)
 
 func _build_all_districts() -> void:
 	for i in range(DISTRICTS.size()):
@@ -79,7 +95,7 @@ func _build_district_visual(index: int) -> void:
 	_box(root, Vector3(10.5, 0.12, 2.0), Vector3(0, 0.19, 0), Color("#c8c2ad"), "DistrictWalkway")
 	_box(root, Vector3(2.0, 0.13, 10.5), Vector3(0, 0.2, 0), Color("#c8c2ad"), "DistrictWalkway")
 	if unlocked_now:
-		var main_height := 5.5
+		var main_height := 5.5 + float(district_levels[index]) * 0.8
 		if String(data["kind"]) == "residential":
 			main_height = 9.0
 		elif String(data["kind"]) == "industrial":
@@ -98,12 +114,67 @@ func _build_district_visual(index: int) -> void:
 			_sphere(root, Vector3(x, 4.0, 0), 0.28, Color("#ffe2a1"), "DistrictLamp")
 	var sign := Label3D.new()
 	sign.name = "DistrictSign"
-	sign.text = String(data["name"]).to_upper() if unlocked_now else "РАЙОН ЗАКРЫТ"
+	sign.text = String(data["name"]).to_upper() + " • УР. %d" % district_levels[index] if unlocked_now else "РАЙОН ЗАКРЫТ"
 	sign.font_size = 34
 	sign.pixel_size = 0.012
 	sign.position = Vector3(0, 5.4 if unlocked_now else 2.0, -7.0)
 	sign.modulate = Color("#fff2cf") if unlocked_now else Color("#d4d9d2")
 	root.add_child(sign)
+
+func _upgrade_district(index: int) -> void:
+	if index < 0 or index >= DISTRICTS.size() or not unlocked[index] or manager == null:
+		return
+	var level := district_levels[index]
+	if level >= 3:
+		status_label.text = "Этот район уже достиг максимального уровня."
+		return
+	var cost := 850 + index * 180 + level * 950
+	var cash := int(manager.get("cash"))
+	if cash < cost:
+		status_label.text = "Для улучшения нужно ещё %d монет." % (cost - cash)
+		return
+	manager.set("cash", cash - cost)
+	district_levels[index] = level + 1
+	var old_visual := get_node_or_null("ExpansionDistrict_%d" % index)
+	if old_visual != null:
+		old_visual.queue_free()
+	_build_district_visual(index)
+	_save_state()
+	if manager.has_method("_save_game"):
+		manager.call("_save_game")
+	if manager.has_method("_refresh_ui"):
+		manager.call("_refresh_ui")
+	status_label.text = "Район «%s» улучшен до уровня %d!" % [DISTRICTS[index]["name"], district_levels[index]]
+	_refresh_hud()
+
+func _start_district_events() -> void:
+	event_timer = Timer.new()
+	event_timer.wait_time = 75.0
+	event_timer.autostart = true
+	event_timer.timeout.connect(_trigger_district_event)
+	add_child(event_timer)
+	event_end_timer = Timer.new()
+	event_end_timer.one_shot = true
+	event_end_timer.timeout.connect(_finish_district_event)
+	add_child(event_end_timer)
+
+func _trigger_district_event() -> void:
+	var events: Array[Dictionary] = [
+		{"name": "Городская ярмарка", "multiplier": 1.35, "duration": 35.0},
+		{"name": "Поток туристов", "multiplier": 1.5, "duration": 25.0},
+		{"name": "День местных производителей", "multiplier": 1.25, "duration": 45.0},
+		{"name": "Спокойный день", "multiplier": 0.9, "duration": 30.0}
+	]
+	var event: Dictionary = events[randi_range(0, events.size() - 1)]
+	event_name = String(event["name"])
+	event_multiplier = float(event["multiplier"])
+	event_end_timer.start(float(event["duration"]))
+	_refresh_hud()
+
+func _finish_district_event() -> void:
+	event_name = "Обычный день"
+	event_multiplier = 1.0
+	_refresh_hud()
 
 func _unlock_district(index: int) -> void:
 	if index < 0 or index >= DISTRICTS.size() or unlocked[index] or manager == null:
@@ -145,22 +216,44 @@ func get_income_bonus() -> int:
 	var total := 0
 	for i in range(DISTRICTS.size()):
 		if unlocked[i]:
-			total += int(DISTRICTS[i]["income"])
+			total += roundi(float(DISTRICTS[i]["income"]) * (1.0 + float(district_levels[i]) * 0.35) * event_multiplier)
 	return total
 
 func get_population_bonus() -> int:
 	var total := 0
 	for i in range(DISTRICTS.size()):
 		if unlocked[i]:
-			total += int(DISTRICTS[i]["population"])
+			total += int(DISTRICTS[i]["population"]) + district_levels[i] * 8
 	return total
 
 func get_demand_bonus() -> int:
 	var total := 0
 	for i in range(DISTRICTS.size()):
 		if unlocked[i]:
-			total += int(DISTRICTS[i]["demand"])
+			total += int(DISTRICTS[i]["demand"]) + district_levels[i]
 	return total
+
+func get_district_level(index: int) -> int:
+	if index < 0 or index >= district_levels.size():
+		return 0
+	return district_levels[index]
+
+func get_district_rating() -> int:
+	var score := 0
+	for i in range(unlocked.size()):
+		if unlocked[i]:
+			score += 15 + district_levels[i] * 7
+	return mini(100, score)
+
+func get_district_business_multiplier(business_type: String) -> float:
+	var bonus := 0.0
+	for i in range(DISTRICTS.size()):
+		if not unlocked[i]:
+			continue
+		var kind := String(DISTRICTS[i]["kind"])
+		if (kind == "commercial" and business_type in ["Магазин", "Кафе", "Ресторан"]) or (kind == "industrial" and business_type == "Мастерская") or (kind == "leisure" and business_type in ["Кафе", "Ресторан"]) or (kind == "residential" and business_type in ["Магазин", "Апартаменты"]):
+			bonus += 0.04 + float(district_levels[i]) * 0.035
+	return minf(0.3, bonus)
 
 func get_unlocked_count() -> int:
 	var total := 0
@@ -173,17 +266,24 @@ func _refresh_hud() -> void:
 	if summary_label == null:
 		return
 	var count := get_unlocked_count()
-	summary_label.text = "Открыто районов: %d/4\nДополнительный доход: +%d / 10 сек.\nНаселение: +%d • спрос: +%d" % [count, get_income_bonus(), get_population_bonus(), get_demand_bonus()]
+	summary_label.text = "Открыто районов: %d/4\nДоп. доход: +%d / 10 сек.\nНаселение: +%d • спрос: +%d\nРейтинг районов: %d/100" % [count, get_income_bonus(), get_population_bonus(), get_demand_bonus(), get_district_rating()]
+	event_label.text = "Событие: %s • доход районов x%.2f" % [event_name, event_multiplier]
 	for i in range(DISTRICTS.size()):
 		var data: Dictionary = DISTRICTS[i]
 		var button := buttons[i]
 		button.disabled = unlocked[i] or manager == null or int(manager.get("cash")) < int(data["cost"])
-		button.text = ("✓ " if unlocked[i] else "＋ ") + String(data["name"]) + (" • открыто" if unlocked[i] else " • %d монет" % int(data["cost"]))
+		button.text = ("✓ " if unlocked[i] else "＋ ") + String(data["name"]) + (" • ур. %d" % district_levels[i] if unlocked[i] else " • %d монет" % int(data["cost"]))
+		var level := district_levels[i]
+		var upgrade_cost := 850 + i * 180 + level * 950
+		upgrade_buttons[i].visible = unlocked[i]
+		upgrade_buttons[i].disabled = level >= 3 or manager == null or int(manager.get("cash")) < upgrade_cost
+		upgrade_buttons[i].text = "Улучшить %s · %d монет" % [String(data["name"]), upgrade_cost] if level < 3 else "✓ Максимальный уровень"
 
 func _save_state() -> void:
 	var config := ConfigFile.new()
 	for i in range(unlocked.size()):
 		config.set_value("districts", "unlocked_%d" % i, unlocked[i])
+		config.set_value("districts", "level_%d" % i, district_levels[i])
 	config.save(SAVE_PATH)
 
 func _load_state() -> void:
@@ -192,6 +292,7 @@ func _load_state() -> void:
 		return
 	for i in range(unlocked.size()):
 		unlocked[i] = bool(config.get_value("districts", "unlocked_%d" % i, false))
+		district_levels[i] = clampi(int(config.get_value("districts", "level_%d" % i, 0)), 0, 3)
 
 func _box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
 	var instance := MeshInstance3D.new()
