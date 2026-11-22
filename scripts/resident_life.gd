@@ -144,8 +144,10 @@ func _update_resident_routines() -> void:
 	for i in range(residents.size()):
 		var activity := _choose_activity(i, phase)
 		var destination := _destination_for(i, activity)
+		var changed_activity := resident_activity[i] != activity
 		resident_activity[i] = activity
-		_move_resident(i, destination, activity)
+		if changed_activity or residents[i].global_position.distance_to(destination) > 1.5:
+			_move_resident(i, destination, activity)
 	_save_state()
 	_refresh_hud()
 
