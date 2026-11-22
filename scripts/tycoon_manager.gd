@@ -413,7 +413,7 @@ func _collect_income() -> void:
 				var wear := maxi(1, 3 - int(plot.get("workers", 0)))
 				plot["condition"] = maxi(0, int(plot.get("condition", 100)) - wear)
 				plots[plot_index] = plot
-	var payroll_paid := mini(cash, payroll)
+	var payroll_paid := mini(maxi(0, cash), payroll)
 	if payroll_paid == payroll:
 		for plot in plots:
 			var building_type := String(plot["building"])
