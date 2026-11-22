@@ -66,6 +66,7 @@ func _create_factory_visuals() -> void:
 		add_child(factory)
 		factory_nodes.append(factory)
 		_build_factory_visual(factory, i)
+		factory.visible = _is_factory_built(i)
 
 func _build_factory_visual(parent: Node3D, factory_id: int) -> void:
 	var colors: Array[Color] = [Color("#bd8657"), Color("#5c9eb2"), Color("#a875a8")]
@@ -162,7 +163,7 @@ func _start_timers() -> void:
 func _build_factory(factory_id: int) -> void:
 	if manager == null or factory_id < 0 or factory_id >= FACTORY_NAMES.size():
 		return
-	if not factories[factory_id].is_empty():
+	if _is_factory_built(factory_id):
 		return
 	var cost := BUILD_COSTS[factory_id]
 	if int(manager.get("cash")) < cost:
@@ -178,6 +179,8 @@ func _build_factory(factory_id: int) -> void:
 		"produced": 0,
 		"failed_shifts": 0
 	}
+	if factory_id < factory_nodes.size():
+		factory_nodes[factory_id].visible = true
 	_save_economy()
 	_save_state()
 	_refresh_ui()
