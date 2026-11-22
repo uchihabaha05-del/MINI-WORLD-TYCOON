@@ -282,9 +282,9 @@ func toggle_shop_panel() -> void:
 	if shop_panel != null:
 		shop_panel.visible = not shop_panel.visible
 
-func serve_customer(wanted_product: int = -1) -> void:
+func serve_customer(wanted_product: int = -1) -> bool:
 	if manager == null:
-		return
+		return false
 	var product_id := wanted_product
 	if product_id < 0 or product_id >= stock.size():
 		var available: Array[int] = []
@@ -293,11 +293,11 @@ func serve_customer(wanted_product: int = -1) -> void:
 				available.append(i)
 		if available.is_empty():
 			sales_label.text = "Покупатель ушёл: все полки пустые"
-			return
+			return false
 		product_id = available[rng.randi_range(0, available.size() - 1)]
 	if stock[product_id] <= 0:
 		sales_label.text = "Покупатель ушёл: закончился товар «%s»" % PRODUCTS[product_id]["name"]
-		return
+		return false
 	stock[product_id] -= 1
 	var base_sale := int(PRODUCTS[product_id]["sell"])
 	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
@@ -314,6 +314,7 @@ func serve_customer(wanted_product: int = -1) -> void:
 	var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
 	if shelf:
 		_update_shelf_products(shelf, product_id)
+	return true
 
 
 func _hire_employee() -> void:
