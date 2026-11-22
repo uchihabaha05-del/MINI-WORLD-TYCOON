@@ -25,6 +25,7 @@ var store: Node
 var spawn_timer: Timer
 var ui_timer: Timer
 var panel_layer: CanvasLayer
+var tourism_panel: PanelContainer
 var summary_label: Label
 var status_label: Label
 var campaign_button: Button
@@ -62,14 +63,14 @@ func _create_hud() -> void:
 	panel_layer.name = "TourismHUD"
 	panel_layer.layer = 9
 	panel_layer.add_to_group("city_dashboard_panels")
-	panel_layer.visible = false
 	add_child(panel_layer)
-	var panel := PanelContainer.new()
-	panel.position = Vector2(650, 430)
-	panel.custom_minimum_size = Vector2(315, 205)
-	panel_layer.add_child(panel)
+	tourism_panel = PanelContainer.new()
+	tourism_panel.position = Vector2(650, 430)
+	tourism_panel.custom_minimum_size = Vector2(315, 205)
+	tourism_panel.visible = false
+	panel_layer.add_child(tourism_panel)
 	var content := VBoxContainer.new()
-	panel.add_child(content)
+	tourism_panel.add_child(content)
 	var title := Label.new()
 	title.text = "🧳 ТУРИЗМ И ГОСТИ"
 	title.add_theme_font_size_override("font_size", 19)
@@ -85,13 +86,13 @@ func _create_hud() -> void:
 	content.add_child(campaign_button)
 	var toggle := Button.new()
 	toggle.text = "Закрыть"
-	toggle.pressed.connect(func() -> void: panel_layer.visible = false)
+	toggle.pressed.connect(func() -> void: tourism_panel.visible = false)
 	content.add_child(toggle)
 	var open_button := Button.new()
 	open_button.text = "🧳 Туризм"
 	open_button.position = Vector2(18, 82)
 	open_button.pressed.connect(func() -> void:
-		panel_layer.visible = not panel_layer.visible
+		tourism_panel.visible = not tourism_panel.visible
 		_refresh_ui()
 	)
 	panel_layer.add_child(open_button)
@@ -199,12 +200,13 @@ func _tourist_arrival(visitor: Node3D, destination_id: int) -> void:
 	var destination_kind := String(LANDMARKS[destination_id]["kind"])
 	var was_satisfied := true
 	if destination_kind == "shop" and store != null and store.has_method("serve_customer"):
+		var cash_before := int(manager.get("cash")) if manager != null else 0
 		was_satisfied = bool(store.call("serve_customer"))
 		if was_satisfied:
 			tourist_sales += 1
 			satisfied_visitors += 1
-			var estimated_sale := 32
-			tourist_revenue += estimated_sale
+			var cash_after := int(manager.get("cash")) if manager != null else cash_before
+			tourist_revenue += maxi(0, cash_after - cash_before)
 		else:
 			disappointed_visitors += 1
 	else:
