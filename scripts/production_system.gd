@@ -41,12 +41,14 @@ var shift_buttons: Array[Button] = []
 var raw_buttons: Array[Button] = []
 var factory_nodes: Array[Node3D] = []
 var rng := RandomNumberGenerator.new()
+var market: Node
 
 func _ready() -> void:
 	rng.randomize()
 	manager = get_parent().get_node_or_null("TycoonManager")
 	shop = get_parent().get_node_or_null("StoreGameplay")
 	supply = get_parent().get_node_or_null("SupplyChain")
+	market = get_parent().get_node_or_null("MarketEconomy")
 	_load_state()
 	_create_factory_visuals()
 	_create_panel()
@@ -227,7 +229,8 @@ func _buy_raw_material(raw_id: int) -> void:
 	if raw_id < 0 or raw_id >= RAW_NAMES.size() or manager == null:
 		return
 	var amount := 20
-	var cost := RAW_PRICES[raw_id] * amount
+	var unit_price := int(market.call("get_raw_price", raw_id)) if market != null and market.has_method("get_raw_price") else RAW_PRICES[raw_id]
+	var cost := unit_price * amount
 	var current_total := 0
 	for value in raw_stock:
 		current_total += value
