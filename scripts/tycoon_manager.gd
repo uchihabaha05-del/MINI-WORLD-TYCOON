@@ -578,6 +578,7 @@ func _update_quest_text() -> void:
 		"Заработай 500 монет на товарах",
 		"Позови помощника следить за полками"
 	]
+	var rewards: Array[int] = [100, 150, 200, 200, 350, 250, 300, 250]
 	var next_quest := -1
 	for i in range(quest_done.size()):
 		if not bool(quest_done[i]):
@@ -586,7 +587,7 @@ func _update_quest_text() -> void:
 	if next_quest == -1:
 		quest_label.text = "🏆 Все задания выполнены!\n⭐ Звёзды: %d — продолжай строить город!" % stars
 	else:
-		quest_label.text = "🎮 МАЛЕНЬКОЕ ДЕЛО ДЛЯ МЭРА\n%s\n🎁 Награда: +1 звезда и монетки  •  ⭐ %d" % [names[next_quest], stars]
+		quest_label.text = "🎮 МАЛЕНЬКОЕ ДЕЛО ДЛЯ МЭРА\n%s\n🎁 Награда: %d монет + 1 звезда  •  ⭐ %d" % [names[next_quest], rewards[next_quest], stars]
 
 
 func _count_buildings() -> int:
