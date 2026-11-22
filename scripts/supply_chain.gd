@@ -263,12 +263,15 @@ func _complete_order(order: Dictionary) -> void:
 	var amount := int(order.get("amount", 0))
 	if shop == null or product_id < 0 or product_id >= PRODUCT_NAMES.size():
 		return
-	var stock: Array = shop.get("stock")
-	stock[product_id] = int(stock[product_id]) + amount
-	shop.set("stock", stock)
+	var stock: Array[int] = shop.get("stock")
+	stock[product_id] += amount
 	var shelf := shop.get_node_or_null("ProductShelf_%d" % product_id)
 	if shelf != null and shop.has_method("_update_shelf_products"):
 		shop.call("_update_shelf_products", shelf, product_id)
+	if shop.has_method("_save_shop_state"):
+		shop.call("_save_shop_state")
+	if shop.has_method("_refresh_shop_ui"):
+		shop.call("_refresh_shop_ui")
 	deliveries_completed += 1
 	units_delivered += amount
 	if bool(order.get("delayed", false)):
