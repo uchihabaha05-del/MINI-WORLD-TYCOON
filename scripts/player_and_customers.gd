@@ -602,6 +602,12 @@ func _choose_business_destination() -> Dictionary:
 	var city_attraction := (0.7 + float(happiness) / 200.0) * (1.0 + minf(float(maxi(0, population - 36)) / 600.0, 0.2))
 	var total_weight: float = 0.0
 	for destination in destinations:
+		var business_type := String(destination["business"])
+		if business_type == "MINI MARKET":
+			business_type = "Магазин"
+		var demand_factor := 1.0
+		if city_life and city_life.has_method("get_business_demand_multiplier"):
+			demand_factor = float(city_life.call("get_business_demand_multiplier", business_type))
 		var weight: float = 45.0
 		if bool(destination.get("rival", false)):
 			weight = float(destination.get("weight", 50.0))
@@ -611,6 +617,7 @@ func _choose_business_destination() -> Dictionary:
 				var appeal: int = int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
 				weight = 10.0 + float(appeal)
 			weight *= city_attraction
+		weight *= demand_factor
 		destination["weight"] = weight
 		total_weight += weight
 	var roll: float = randf() * total_weight
@@ -664,7 +671,8 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 	var appeal_factor := 1.0
 	if plot_id >= 0 and tycoon_manager.has_method("get_business_appeal"):
 		appeal_factor = 0.75 + float(tycoon_manager.call("get_business_appeal", plot_id)) / 400.0
-	var revenue := roundi(float(spend) * happiness_factor * appeal_factor)
+	var demand_factor := float(city_life.call("get_business_demand_multiplier", business)) if city_life and city_life.has_method("get_business_demand_multiplier") else 1.0
+	var revenue := roundi(float(spend) * happiness_factor * appeal_factor * demand_factor)
 	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + revenue)
 	tycoon_manager.call("_save_game")
 	tycoon_manager.call("_refresh_ui")
