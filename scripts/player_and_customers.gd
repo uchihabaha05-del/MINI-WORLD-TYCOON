@@ -487,13 +487,18 @@ func _create_customer_counter() -> void:
 	customer_label.add_theme_font_size_override("font_size", 19)
 	layer.add_child(customer_label)
 
+func _get_customer_capacity() -> int:
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+	return int(city_life.call("get_customer_capacity")) if city_life and city_life.has_method("get_customer_capacity") else MAX_ACTIVE_CUSTOMERS
+
 func _update_customer_interval() -> void:
 	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 	var population := int(city_life.call("get_population")) if city_life and city_life.has_method("get_population") else 36
 	var happiness := int(city_life.call("get_happiness")) if city_life and city_life.has_method("get_happiness") else 70
 	var population_bonus := float(maxi(0, population - 36)) * 0.025
 	var happiness_bonus := float(happiness - 35) * 0.045
-	var interval := clampf(10.0 - population_bonus - happiness_bonus, 5.5, 10.0)
+	var loyalty_factor := float(city_life.call("get_customer_interval_multiplier")) if city_life and city_life.has_method("get_customer_interval_multiplier") else 1.0
+	var interval := clampf((10.0 - population_bonus - happiness_bonus) / loyalty_factor, 4.5, 10.0)
 	if customer_timer != null:
 		customer_timer.wait_time = interval
 
@@ -507,12 +512,12 @@ func _start_customer_timer() -> void:
 
 func _spawn_customer() -> void:
 	_update_customer_interval()
-	if active_customers >= MAX_ACTIVE_CUSTOMERS:
+	if active_customers >= _get_customer_capacity():
 		return
 	customer_count += 1
 	active_customers += 1
 	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, MAX_ACTIVE_CUSTOMERS, customer_count]
+		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, _get_customer_capacity(), customer_count]
 	var customer := Node3D.new()
 	customer.name = "Customer_%d" % customer_count
 	var spawn_position := Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
@@ -672,7 +677,9 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 	if plot_id >= 0 and tycoon_manager.has_method("get_business_appeal"):
 		appeal_factor = 0.75 + float(tycoon_manager.call("get_business_appeal", plot_id)) / 400.0
 	var demand_factor := float(city_life.call("get_business_demand_multiplier", business)) if city_life and city_life.has_method("get_business_demand_multiplier") else 1.0
-	var revenue := roundi(float(spend) * happiness_factor * appeal_factor * demand_factor)
+	var event_factor := float(city_life.call("get_city_event_multiplier")) if city_life and city_life.has_method("get_city_event_multiplier") else 1.0
+	var loyalty_factor := 0.9 + (float(city_life.call("get_city_loyalty")) / 1000.0) if city_life and city_life.has_method("get_city_loyalty") else 1.0
+	var revenue := roundi(float(spend) * happiness_factor * appeal_factor * demand_factor * event_factor * loyalty_factor)
 	tycoon_manager.set("cash", int(tycoon_manager.get("cash")) + revenue)
 	tycoon_manager.call("_save_game")
 	tycoon_manager.call("_refresh_ui")
