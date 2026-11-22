@@ -98,7 +98,6 @@ func _start_market_event() -> void:
 			for i in range(district_demand.size()):
 				district_demand[i] = minf(1.4, district_demand[i] + 0.16)
 	market_event_time = 90.0
-	event_label.text = market_event if event_label != null else market_event
 
 func _create_panel() -> void:
 	var layer := CanvasLayer.new()
@@ -183,8 +182,9 @@ func _refresh_ui() -> void:
 	for i in range(DISTRICTS.size()):
 		district_lines.append("%s: спрос %d%%" % [DISTRICTS[i], roundi(district_demand[i] * 100.0)])
 	district_label.text = "Спрос по районам:\n" + "\n".join(PackedStringArray(district_lines))
+	var shop_stock: Array[int] = shop.get("stock") if shop != null else []
 	for i in range(sell_buttons.size()):
-		var available := int(shop.get("stock")[i]) if shop != null else 0
+		var available := int(shop_stock[i]) if i < shop_stock.size() else 0
 		sell_buttons[i].text = "Продать оптом %s · до 10 шт." % PRODUCT_NAMES[i]
 		sell_buttons[i].disabled = available <= 0 or manager == null
 
@@ -219,7 +219,7 @@ func _load_state() -> void:
 	wholesale_revenue = maxi(0, int(config.get_value("market", "wholesale_revenue", 0)))
 	var saved_history: Variant = config.get_value("market", "price_history", price_history)
 	if saved_history is Array and saved_history.size() == price_history.size():
-		price_history = saved_history
-		if price_history[i] is Array:
-			price_history[i] = price_history[i]
+		for i in range(price_history.size()):
+			if saved_history[i] is Array:
+				price_history[i] = saved_history[i]
 
