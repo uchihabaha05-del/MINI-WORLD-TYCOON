@@ -36,6 +36,29 @@ func get_happiness() -> int:
 func get_demand_bonus() -> int:
 	return mini(8, int(population / 30.0) + civic_demand_bonus)
 
+func get_business_demand(business_type: String) -> int:
+	var demand := 55 + int(maxi(0, population - BASE_POPULATION) / 8.0)
+	demand += int(round(float(happiness - 70) * 0.35))
+	match business_type:
+		"Кафе":
+			demand += 8 if population >= 60 else -4
+		"Ресторан":
+			demand += 14 if population >= 90 else -10
+		"Мастерская":
+			demand += 6
+		"Магазин", "MINI MARKET":
+			demand += 5
+	var same_type_count := 0
+	if manager != null:
+		for plot in manager.get("plots"):
+			if String(plot.get("building", "")) == business_type:
+				same_type_count += 1
+	demand -= maxi(0, same_type_count - 1) * 12
+	return clampi(demand, 20, 100)
+
+func get_business_demand_multiplier(business_type: String) -> float:
+	return 0.75 + float(get_business_demand(business_type)) / 200.0
+
 func record_customer_result(success: bool) -> void:
 	if success:
 		happy_customer_count += 1
@@ -63,7 +86,7 @@ func _create_hud() -> void:
 	add_child(layer)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(650, 198)
-	panel.custom_minimum_size = Vector2(290, 88)
+	panel.custom_minimum_size = Vector2(310, 116)
 	layer.add_child(panel)
 	population_label = Label.new()
 	population_label.add_theme_font_size_override("font_size", 17)
