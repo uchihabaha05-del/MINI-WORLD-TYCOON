@@ -32,7 +32,10 @@ var camera_yaw := 0.0
 var camera_pitch := 48.0
 var camera_distance := 34.0
 var camera_touch_index := -1
+var camera_pinch_index := -1
 var last_camera_touch := Vector2.ZERO
+var camera_pinch_touch := Vector2.ZERO
+var camera_pinch_distance := 0.0
 var joystick_touch_index := -1
 var joystick_center := Vector2.ZERO
 var joystick_base: Panel
@@ -291,9 +294,14 @@ func _input(event: InputEvent) -> void:
 			if joystick_touch_index == -1 and event.position.x < screen.x * 0.43 and event.position.y > screen.y * 0.55:
 				joystick_touch_index = event.index
 				_update_joystick(event.position)
-			elif camera_touch_index == -1 and event.position.x > screen.x * 0.48 and event.position.y < screen.y - 210.0:
-				camera_touch_index = event.index
-				last_camera_touch = event.position
+			elif event.position.x > screen.x * 0.48 and event.position.y < screen.y - 210.0:
+				if camera_touch_index == -1:
+					camera_touch_index = event.index
+					last_camera_touch = event.position
+				elif camera_pinch_index == -1 and event.index != camera_touch_index:
+					camera_pinch_index = event.index
+					camera_pinch_touch = event.position
+					camera_pinch_distance = last_camera_touch.distance_to(camera_pinch_touch)
 		else:
 			if event.index == joystick_touch_index:
 				joystick_touch_index = -1
@@ -301,15 +309,39 @@ func _input(event: InputEvent) -> void:
 				if joystick_knob != null:
 					joystick_knob.position = Vector2(45, 45)
 			if event.index == camera_touch_index:
-				camera_touch_index = -1
+				if camera_pinch_index != -1:
+					camera_touch_index = camera_pinch_index
+					last_camera_touch = camera_pinch_touch
+					camera_pinch_index = -1
+					camera_pinch_distance = 0.0
+				else:
+					camera_touch_index = -1
+			if event.index == camera_pinch_index:
+				camera_pinch_index = -1
+				camera_pinch_distance = 0.0
 	elif event is InputEventScreenDrag:
 		if event.index == joystick_touch_index:
 			_update_joystick(event.position)
 		elif event.index == camera_touch_index:
 			var drag: Vector2 = event.position - last_camera_touch
-			camera_yaw = wrapf(camera_yaw - drag.x * 0.22, -180.0, 180.0)
-			camera_pitch = clampf(camera_pitch + drag.y * 0.12, 18.0, 62.0)
+			if camera_pinch_index == -1:
+				camera_yaw = wrapf(camera_yaw - drag.x * 0.22, -180.0, 180.0)
+				camera_pitch = clampf(camera_pitch + drag.y * 0.12, 18.0, 62.0)
 			last_camera_touch = event.position
+			if camera_pinch_index != -1:
+				_update_camera_pinch()
+		elif event.index == camera_pinch_index:
+			camera_pinch_touch = event.position
+			_update_camera_pinch()
+
+func _update_camera_pinch() -> void:
+	var new_distance := last_camera_touch.distance_to(camera_pinch_touch)
+	if camera_pinch_distance > 1.0 and new_distance > 1.0:
+		var pinch_delta := camera_pinch_distance - new_distance
+		camera_distance = clampf(camera_distance + pinch_delta * 0.045, 18.0, 64.0)
+		if camera_rig != null:
+			camera_rig.fov = clampf(camera_rig.fov - pinch_delta * 0.012, 42.0, 72.0)
+	camera_pinch_distance = new_distance
 
 func _update_joystick(screen_position: Vector2) -> void:
 	var offset := screen_position - joystick_center
