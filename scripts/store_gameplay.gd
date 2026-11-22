@@ -297,7 +297,6 @@ func serve_customer(wanted_product: int = -1) -> void:
 		product_id = available[rng.randi_range(0, available.size() - 1)]
 	if stock[product_id] <= 0:
 		sales_label.text = "Покупатель ушёл: закончился товар «%s»" % PRODUCTS[product_id]["name"]
-		_refresh_shop_ui()
 		return
 	stock[product_id] -= 1
 	var base_sale := int(PRODUCTS[product_id]["sell"])
