@@ -19,6 +19,7 @@ var event_timer: Timer
 var event_end_timer: Timer
 var event_multiplier := 1.0
 var event_name := "Обычный день"
+var hud_timer: Timer
 var summary_label: Label
 var status_label: Label
 
@@ -29,6 +30,11 @@ func _ready() -> void:
 	_create_hud()
 	_refresh_hud()
 	_start_district_events()
+	hud_timer = Timer.new()
+	hud_timer.wait_time = 2.0
+	hud_timer.autostart = true
+	hud_timer.timeout.connect(_refresh_hud)
+	add_child(hud_timer)
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
