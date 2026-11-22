@@ -282,15 +282,23 @@ func toggle_shop_panel() -> void:
 	if shop_panel != null:
 		shop_panel.visible = not shop_panel.visible
 
-func serve_customer() -> void:
-	var available: Array[int] = []
-	for i in range(stock.size()):
-		if stock[i] > 0:
-			available.append(i)
-	if available.is_empty() or manager == null:
-		sales_label.text = "Нет товара на полках"
+func serve_customer(wanted_product: int = -1) -> void:
+	if manager == null:
 		return
-	var product_id: int = available[rng.randi_range(0, available.size() - 1)]
+	var product_id := wanted_product
+	if product_id < 0 or product_id >= stock.size():
+		var available: Array[int] = []
+		for i in range(stock.size()):
+			if stock[i] > 0:
+				available.append(i)
+		if available.is_empty():
+			sales_label.text = "Покупатель ушёл: все полки пустые"
+			return
+		product_id = available[rng.randi_range(0, available.size() - 1)]
+	if stock[product_id] <= 0:
+		sales_label.text = "Покупатель ушёл: закончился товар «%s»" % PRODUCTS[product_id]["name"]
+		_refresh_shop_ui()
+		return
 	stock[product_id] -= 1
 	var base_sale := int(PRODUCTS[product_id]["sell"])
 	var demand_bonus := int(city_life.call("get_demand_bonus")) if city_life and city_life.has_method("get_demand_bonus") else 0
