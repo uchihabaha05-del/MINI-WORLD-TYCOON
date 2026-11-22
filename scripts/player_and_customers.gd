@@ -532,7 +532,18 @@ func _spawn_customer() -> void:
 	var destination: Dictionary = _choose_business_destination()
 	var target: Vector3 = destination["position"]
 	var route := [spawn_position, Vector3(target.x, 0.0, spawn_position.z), target]
-	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position, bool(destination.get("rival", false)), int(destination.get("rival_id", -1)), int(destination.get("plot_id", -1)))
+	var wanted_product := -1
+	if String(destination["business"]) == "MINI MARKET":
+		wanted_product = posmod(customer_count - 1, 3)
+		var request_tag := Label3D.new()
+		request_tag.name = "ShoppingRequest"
+		request_tag.text = "ИЩЕТ: %s" % ["ХЛЕБ", "НАПИТКИ", "СНЭКИ"][wanted_product]
+		request_tag.font_size = 22
+		request_tag.pixel_size = 0.012
+		request_tag.position = Vector3(0, 2.35, 0)
+		request_tag.modulate = Color("#fff2a8")
+		customer.add_child(request_tag)
+	_walk_customer(customer, route, String(destination["business"]), int(destination["spend"]), spawn_position, bool(destination.get("rival", false)), int(destination.get("rival_id", -1)), int(destination.get("plot_id", -1)), wanted_product)
 
 func _add_customer_limb(parent: Node3D, node_name: String, offset: Vector3, radius: float, height: float) -> void:
 	var pivot := Node3D.new()
@@ -591,7 +602,7 @@ func _choose_business_destination() -> Dictionary:
 			return destination
 	return destinations[0]
 
-func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3, is_rival: bool, rival_id: int, plot_id: int) -> void:
+func _walk_customer(customer: Node3D, path: Array, business: String, spend: int, spawn_position: Vector3, is_rival: bool, rival_id: int, plot_id: int, wanted_product: int = -1) -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_LINEAR)
 	tween.set_ease(Tween.EASE_IN_OUT)
@@ -603,12 +614,12 @@ func _walk_customer(customer: Node3D, path: Array, business: String, spend: int,
 			var facing := atan2(travel_direction.x, travel_direction.z)
 			tween.parallel().tween_property(customer, "rotation:y", facing, 0.25)
 		tween.tween_property(customer, "global_position", destination, travel_time)
-	tween.tween_callback(_serve_customer.bind(business, spend, is_rival, rival_id, plot_id))
+	tween.tween_callback(_serve_customer.bind(business, spend, is_rival, rival_id, plot_id, wanted_product))
 	tween.tween_interval(2.0)
 	tween.tween_property(customer, "global_position", spawn_position, 3.0)
 	tween.tween_callback(_customer_left.bind(customer))
 
-func _serve_customer(business: String, spend: int, is_rival: bool = false, rival_id: int = -1, plot_id: int = -1) -> void:
+func _serve_customer(business: String, spend: int, is_rival: bool = false, rival_id: int = -1, plot_id: int = -1, wanted_product: int = -1) -> void:
 	if not visits_by_business.has(business):
 		visits_by_business[business] = 0
 	visits_by_business[business] = int(visits_by_business[business]) + 1
@@ -619,7 +630,7 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 		return
 	if business == "MINI MARKET":
 		if store_system and store_system.has_method("serve_customer"):
-			store_system.call("serve_customer")
+			store_system.call("serve_customer", wanted_product)
 		return
 	if tycoon_manager == null:
 		return
