@@ -41,9 +41,15 @@ func get_business_demand(business_type: String) -> int:
 	demand += int(round(float(happiness - 70) * 0.35))
 	match business_type:
 		"Кафе":
-			demand += 8 if population >= 60 else -4
+			if population >= 60:
+				demand += 8
+			else:
+				demand -= 4
 		"Ресторан":
-			demand += 14 if population >= 90 else -10
+			if population >= 90:
+				demand += 14
+			else:
+				demand -= 10
 		"Мастерская":
 			demand += 6
 		"Магазин", "MINI MARKET":
