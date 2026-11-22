@@ -141,7 +141,7 @@ func _upgrade_service(service_id: int) -> void:
 		return
 	if manager == null:
 		return
-	var cost := BASE_COSTS[service_id] * (levels[service_id] + 1)
+	var cost: int = int(BASE_COSTS[service_id]) * (levels[service_id] + 1)
 	var balance := int(manager.get("cash"))
 	if balance < cost:
 		status_label.text = "Не хватает %d монет для улучшения службы." % (cost - balance)
@@ -293,7 +293,7 @@ func _refresh_hud() -> void:
 	if active_incident == "":
 		incident_label.text = "Городские происшествия: спокойно"
 	for i in range(levels.size()):
-		var next_cost := BASE_COSTS[i] * (levels[i] + 1)
+		var next_cost: int = int(BASE_COSTS[i]) * (levels[i] + 1)
 		buttons[i].disabled = levels[i] >= MAX_LEVEL or manager == null or int(manager.get("cash")) < next_cost
 		buttons[i].text = "%s %s • ур. %d/%d • улучшить: %d" % [
 			SERVICE_ICONS[i], SERVICE_NAMES[i], levels[i], MAX_LEVEL, next_cost
