@@ -620,6 +620,7 @@ func _walk_customer(customer: Node3D, path: Array, business: String, spend: int,
 	tween.tween_callback(_customer_left.bind(customer))
 
 func _serve_customer(business: String, spend: int, is_rival: bool = false, rival_id: int = -1, plot_id: int = -1, wanted_product: int = -1) -> void:
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 	if not visits_by_business.has(business):
 		visits_by_business[business] = 0
 	visits_by_business[business] = int(visits_by_business[business]) + 1
@@ -632,13 +633,11 @@ func _serve_customer(business: String, spend: int, is_rival: bool = false, rival
 		var sale_completed := false
 		if store_system and store_system.has_method("serve_customer"):
 			sale_completed = bool(store_system.call("serve_customer", wanted_product))
-		var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 		if city_life and city_life.has_method("record_customer_result"):
 			city_life.call("record_customer_result", sale_completed)
 		return
 	if tycoon_manager == null:
 		return
-	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
 	if city_life and city_life.has_method("record_customer_result"):
 		city_life.call("record_customer_result", true)
 	var happiness_factor := 1.0
