@@ -45,6 +45,7 @@ func _ready() -> void:
 	_build_shelves()
 	_create_shop_interface()
 	_start_staff_system()
+	_resume_pending_deliveries()
 	_refresh_shop_ui()
 
 func _build_shelves() -> void:
@@ -191,6 +192,15 @@ func _order_delivery(product_id: int) -> void:
 	delivery_label.text = "Грузовик в пути: %s (+%d)" % [PRODUCTS[product_id]["name"], DELIVERY_AMOUNT]
 	manager.call("_save_game")
 	manager.call("_refresh_ui")
+	_save_shop_state()
+	_launch_delivery(product_id)
+
+func _resume_pending_deliveries() -> void:
+	for i in range(delivery_pending.size()):
+		if delivery_pending[i]:
+			_launch_delivery(i)
+
+func _launch_delivery(product_id: int) -> void:
 	var truck := _create_delivery_truck()
 	var tween := create_tween()
 	tween.tween_property(truck, "position", Vector3(-17.0, 0.0, -22.0), DELIVERY_TRAVEL_TIME)
@@ -237,6 +247,7 @@ func _complete_delivery(product_id: int, truck: Node3D) -> void:
 		if shelf:
 			_update_shelf_products(shelf, product_id)
 		_save_shop_state()
+		manager.call("_save_game") if manager != null else null
 		_refresh_shop_ui()
 		delivery_label.text = "Доставлено: %s (+%d шт.)" % [PRODUCTS[product_id]["name"], DELIVERY_AMOUNT]
 	if is_instance_valid(truck):
@@ -387,6 +398,7 @@ func _save_shop_state() -> void:
 	config.set_value("staff", "employee_hired", employee_hired)
 	config.set_value("staff", "payroll_paid_total", payroll_paid_total)
 	config.set_value("staff", "auto_restocked_total", auto_restocked_total)
+	config.set_value("delivery", "pending", delivery_pending)
 	config.set_value("sales", "total_sales", total_sales)
 	config.set_value("sales", "total_profit", total_profit)
 	for i in range(stock.size()):
@@ -404,6 +416,10 @@ func _load_shop_state() -> void:
 	total_profit = int(config.get_value("sales", "total_profit", 0))
 	for i in range(stock.size()):
 		stock[i] = maxi(0, int(config.get_value("inventory", "stock_%d" % i, stock[i])))
+	var saved_pending: Variant = config.get_value("delivery", "pending", delivery_pending)
+	if saved_pending is Array and saved_pending.size() == delivery_pending.size():
+		for i in range(delivery_pending.size()):
+			delivery_pending[i] = bool(saved_pending[i])
 
 func _box(size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
 	var instance := MeshInstance3D.new()
