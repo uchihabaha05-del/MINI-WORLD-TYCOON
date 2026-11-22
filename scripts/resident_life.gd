@@ -146,6 +146,7 @@ func _update_resident_routines() -> void:
 		var destination := _destination_for(i, activity)
 		resident_activity[i] = activity
 		_move_resident(i, destination, activity)
+	_save_state()
 	_refresh_hud()
 
 func _choose_activity(index: int, phase: float) -> String:
