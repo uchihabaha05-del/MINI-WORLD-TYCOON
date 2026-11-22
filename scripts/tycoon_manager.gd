@@ -45,6 +45,7 @@ var marketing_button: Button
 var income_timer: Timer
 var city_dashboard_open := false
 var city_dashboard_button: Button
+var story_markers: Array[Label3D] = []
 
 func _ready() -> void:
 	_create_plots()
@@ -103,6 +104,17 @@ func _create_plots() -> void:
 		marker.position = Vector3(0, 1.1, 0)
 		marker.modulate = Color("#ffffff")
 		area.add_child(marker)
+
+		var story_marker := Label3D.new()
+		story_marker.name = "StoryHint"
+		story_marker.text = "НАЖМИ НА УЧАСТОК"
+		story_marker.font_size = 42
+		story_marker.pixel_size = 0.012
+		story_marker.position = Vector3(0, 3.2, 0)
+		story_marker.modulate = Color("#fff2a6")
+		story_marker.visible = false
+		area.add_child(story_marker)
+		story_markers.append(story_marker)
 
 		area.input_event.connect(_on_plot_input_event.bind(i))
 		add_child(area)
@@ -417,7 +429,21 @@ func _refresh_all_plots() -> void:
 			color = Color("#d8bd70") if String(plot["building"]).is_empty() else Color("#7899a8")
 		if i == selected_plot:
 			color = Color("#f2dc77")
+		elif tutorial_step == 0 and i == 0:
+			color = Color("#f2dc77")
 		pad.material_override = _make_material(color)
+		if i < story_markers.size():
+			var hint := story_markers[i]
+			hint.visible = false
+			if tutorial_step == 0 and i == 0:
+				hint.text = "⬇ ПЕРВЫЙ УЧАСТОК"
+				hint.visible = true
+			elif tutorial_step == 1 and i == selected_plot:
+				hint.text = "КУПИ ЭТУ ЗЕМЛЮ"
+				hint.visible = true
+			elif tutorial_step == 2 and i == selected_plot:
+				hint.text = "ПОСТРОЙ МАГАЗИН"
+				hint.visible = true
 
 func _refresh_ui() -> void:
 	var business_count := 0
@@ -543,14 +569,14 @@ func _check_quests() -> void:
 
 func _update_quest_text() -> void:
 	var names: Array[String] = [
-		"Купи первый участок",
-		"Построй первое здание",
-		"Улучши любое здание",
-		"Найми работника",
-		"Построй всего 3 здания",
-		"Продай 10 товаров в магазине",
-		"Заработай 500 монет на продажах",
-		"Найми помощника в магазин"
+		"Получи свой первый участок",
+		"Открой первый магазин",
+		"Сделай магазин ещё лучше",
+		"Найми помощника для покупателей",
+		"Построй целых 3 здания",
+		"Продай 10 товаров жителям",
+		"Заработай 500 монет на товарах",
+		"Позови помощника следить за полками"
 	]
 	var next_quest := -1
 	for i in range(quest_done.size()):
@@ -560,7 +586,7 @@ func _update_quest_text() -> void:
 	if next_quest == -1:
 		quest_label.text = "🏆 Все задания выполнены!\n⭐ Звёзды: %d — продолжай строить город!" % stars
 	else:
-		quest_label.text = "🎮 ЗАДАНИЕ: %s\nНаграда: ⭐ + 1  •  Звёзды: %d" % [names[next_quest], stars]
+		quest_label.text = "🎮 МАЛЕНЬКОЕ ДЕЛО ДЛЯ МЭРА\n%s\n🎁 Награда: +1 звезда и монетки  •  ⭐ %d" % [names[next_quest], stars]
 
 
 func _count_buildings() -> int:
@@ -601,15 +627,15 @@ func _next_level_building_goal(current_count: int) -> int:
 func _update_mission() -> void:
 	match tutorial_step:
 		0:
-			mission_label.text = "🎯 ТВОЯ ЦЕЛЬ\n1. Найди зелёную землю и нажми на неё."
+			mission_label.text = "🌈 ИСТОРИЯ ГОРОДКА\nПривет, мэр! Наш городок опустел. Помоги жителям: открой магазин, продавай товары и строй красивые здания!\n\n🧭 ШАГ 1: Иди к жёлтой подсказке и нажми на участок."
 		1:
-			mission_label.text = "👍 Отлично!\n2. Купи выбранную землю за 300 монет."
+			mission_label.text = "⭐ Отлично! Ты нашёл место для магазина.\n\n🧭 ШАГ 2: Нажми «Купить землю» — это стоит 300 монет. Земля станет твоей!"
 		2:
-			mission_label.text = "🏗️ Теперь строй!\n3. Нажми «Магазин» — он стоит 450 монет."
+			mission_label.text = "🏗️ Земля твоя! Пора открыть первый магазин.\n\n🧭 ШАГ 3: Нажми кнопку «Магазин» — он стоит 450 монет. Жители ждут покупки!"
 		3:
-			mission_label.text = "⭐ Всё готово!\nПодожди немного — здание принесёт тебе монетки."
+			mission_label.text = "🎉 УРА! Магазин открыт!\nПокупатели скоро придут, а магазин принесёт первые монетки. Подожди немного и смотри, как растёт твой город!"
 		_:
-			mission_label.text = "🏆 Молодец! Первый бизнес готов!\nСтрой новые здания и развивай свой город."
+			mission_label.text = "🏆 ТЫ — МОЛОДЕЦ, МЭР!\nПервый магазин работает. Теперь помогай городу: пополняй полки, продавай товары, нанимай помощников и открывай кафе, дома и новые магазины."
 
 func _hire_plot_worker() -> void:
 	if not _has_selection():
