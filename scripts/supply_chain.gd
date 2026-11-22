@@ -245,10 +245,12 @@ func _delivery_tick() -> void:
 			order["remaining"] = float(order["remaining"]) + 5.0
 			deliveries_delayed += 1
 			supplier_rating = maxi(35, supplier_rating - 2)
+			changed = true
 		pending_orders[i] = order
 		if float(order["remaining"]) <= 0.0:
 			_complete_order(order)
 			pending_orders.remove_at(i)
+			changed = true
 	if pending_orders.is_empty() and is_instance_valid(active_truck):
 		active_truck.queue_free()
 		active_truck = null
