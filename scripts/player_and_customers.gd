@@ -487,6 +487,16 @@ func _create_customer_counter() -> void:
 	customer_label.add_theme_font_size_override("font_size", 19)
 	layer.add_child(customer_label)
 
+func _update_customer_interval() -> void:
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+	var population := int(city_life.call("get_population")) if city_life and city_life.has_method("get_population") else 36
+	var happiness := int(city_life.call("get_happiness")) if city_life and city_life.has_method("get_happiness") else 70
+	var population_bonus := float(maxi(0, population - 36)) * 0.025
+	var happiness_bonus := float(happiness - 35) * 0.045
+	var interval := clampf(10.0 - population_bonus - happiness_bonus, 5.5, 10.0)
+	if customer_timer != null:
+		customer_timer.wait_time = interval
+
 func _start_customer_timer() -> void:
 	customer_timer = Timer.new()
 	customer_timer.wait_time = CUSTOMER_INTERVAL
@@ -495,6 +505,7 @@ func _start_customer_timer() -> void:
 	add_child(customer_timer)
 
 func _spawn_customer() -> void:
+	_update_customer_interval()
 	if active_customers >= MAX_ACTIVE_CUSTOMERS:
 		return
 	customer_count += 1
@@ -584,15 +595,21 @@ func _choose_business_destination() -> Dictionary:
 	if rival_system != null and rival_system.has_method("get_rival_destinations"):
 		for rival_destination in rival_system.call("get_rival_destinations"):
 			destinations.append(rival_destination)
+	var city_life := get_tree().current_scene.get_node_or_null("CityPopulation")
+	var happiness := int(city_life.call("get_happiness")) if city_life and city_life.has_method("get_happiness") else 70
+	var population := int(city_life.call("get_population")) if city_life and city_life.has_method("get_population") else 36
+	var city_attraction := (0.7 + float(happiness) / 200.0) * (1.0 + minf(float(maxi(0, population - 36)) / 600.0, 0.2))
 	var total_weight: float = 0.0
 	for destination in destinations:
 		var weight: float = 45.0
 		if bool(destination.get("rival", false)):
 			weight = float(destination.get("weight", 50.0))
-		elif String(destination["business"]) != "MINI MARKET":
-			var plot_id: int = int(destination.get("plot_id", -1))
-			var appeal: int = int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
-			weight = 10.0 + float(appeal)
+		else:
+			if String(destination["business"]) != "MINI MARKET":
+				var plot_id: int = int(destination.get("plot_id", -1))
+				var appeal: int = int(tycoon_manager.call("get_business_appeal", plot_id)) if tycoon_manager and tycoon_manager.has_method("get_business_appeal") else 50
+				weight = 10.0 + float(appeal)
+			weight *= city_attraction
 		destination["weight"] = weight
 		total_weight += weight
 	var roll: float = randf() * total_weight
