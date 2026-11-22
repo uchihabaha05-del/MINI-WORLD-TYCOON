@@ -325,7 +325,7 @@ func _load_state() -> void:
 		unlocked[i] = bool(config.get_value("districts", "unlocked_%d" % i, false))
 		district_levels[i] = clampi(int(config.get_value("districts", "level_%d" % i, 0)), 0, 3)
 
-func _box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> void:
+func _box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: String) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	var mesh := BoxMesh.new()
@@ -334,6 +334,7 @@ func _box(parent: Node3D, size: Vector3, pos: Vector3, color: Color, node_name: 
 	instance.position = pos
 	instance.material_override = _material(color)
 	parent.add_child(instance)
+	return instance
 
 func _cylinder(parent: Node3D, pos: Vector3, radius: float, height: float, color: Color, node_name: String) -> void:
 	var instance := MeshInstance3D.new()
