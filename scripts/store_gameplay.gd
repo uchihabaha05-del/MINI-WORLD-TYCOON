@@ -301,6 +301,7 @@ func serve_customer() -> void:
 	total_profit += sale - cost
 	_save_shop_state()
 	manager.call("_save_game")
+	manager.call("_check_quests")
 	manager.call("_refresh_ui")
 	_refresh_shop_ui()
 	var shelf := get_node_or_null("ProductShelf_%d" % product_id) as Node3D
