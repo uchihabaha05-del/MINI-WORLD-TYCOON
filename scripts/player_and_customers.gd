@@ -30,7 +30,7 @@ var nearby_plot_id := -1
 var near_shop := false
 var camera_yaw := 0.0
 var camera_pitch := 48.0
-var camera_distance := 34.0
+var camera_distance := 12.0
 var camera_touch_index := -1
 var camera_pinch_index := -1
 var last_camera_touch := Vector2.ZERO
@@ -338,7 +338,7 @@ func _update_camera_pinch() -> void:
 	var new_distance := last_camera_touch.distance_to(camera_pinch_touch)
 	if camera_pinch_distance > 1.0 and new_distance > 1.0:
 		var pinch_delta := camera_pinch_distance - new_distance
-		camera_distance = clampf(camera_distance + pinch_delta * 0.045, 18.0, 64.0)
+		camera_distance = clampf(camera_distance + pinch_delta * 0.045, 7.0, 24.0)
 	camera_pinch_distance = new_distance
 
 func _update_joystick(screen_position: Vector2) -> void:
@@ -440,7 +440,7 @@ func _jump() -> void:
 
 func _change_camera_zoom(amount: float) -> void:
 	if camera_rig != null:
-		camera_distance = clampf(camera_distance + amount * 0.7, 22.0, 58.0)
+		camera_distance = clampf(camera_distance + amount * 0.7, 7.0, 24.0)
 		camera_rig.fov = clampf(camera_rig.fov + amount * 0.35, 42.0, 78.0)
 
 func _add_empty_cell(parent: GridContainer) -> void:
