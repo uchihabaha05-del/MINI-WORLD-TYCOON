@@ -13,6 +13,7 @@ const SAVE_PATH := "user://city_industry_network.cfg"
 
 var manager: Node
 var residents: Node
+var market: Node
 var panel_layer: CanvasLayer
 var summary_label: Label
 var jobs_label: Label
@@ -35,6 +36,7 @@ func _ready() -> void:
 	rng.randomize()
 	manager = get_parent().get_node_or_null("TycoonManager")
 	residents = get_parent().get_node_or_null("ResidentLife")
+	market = get_parent().get_node_or_null("MarketEconomy")
 	_load_state()
 	_create_hubs()
 	_create_panel()
@@ -176,6 +178,7 @@ func _complete_shipment(order: Dictionary, van: Node3D) -> void:
 	if hubs[2]:
 		demand_bonus += 18
 	reward += demand_bonus
+	_apply_destination_trade_effect(int(order.get("to", 0)))
 	if manager != null:
 		manager.set("cash", int(manager.get("cash")) + reward)
 		completed_shipments += 1
@@ -187,6 +190,19 @@ func _complete_shipment(order: Dictionary, van: Node3D) -> void:
 		_save_economy()
 	_save_state()
 	_refresh_ui()
+
+func _apply_destination_trade_effect(district_id: int) -> void:
+	if market == null or district_id < 0 or district_id >= 3:
+		return
+	var demand: Array = market.get("district_demand")
+	if demand.size() != 3:
+		return
+	demand[district_id] = minf(1.4, float(demand[district_id]) + 0.035)
+	market.set("district_demand", demand)
+	if market.has_method("_save_state"):
+		market.call("_save_state")
+	if market.has_method("_refresh_ui"):
+		market.call("_refresh_ui")
 
 func _build_hub(hub_id: int) -> void:
 	if manager == null or hub_id < 0 or hub_id >= HUB_NAMES.size() or hubs[hub_id]:
