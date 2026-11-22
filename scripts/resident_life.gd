@@ -170,20 +170,24 @@ func _destination_for(index: int, activity: String) -> Vector3:
 		"Дома":
 			return home_positions[index]
 		"В парке":
-			total_park_visits += 1
+			if resident_activity[index] != activity:
+				total_park_visits += 1
 			return [Vector3(-45, 0, 55), Vector3(45, 0, 55), Vector3(0, 0, 72)][index % 3]
 		"На остановке":
-			total_bus_trips += 1
-			if transport != null and transport.has_method("register_commuters"):
-				transport.call("register_commuters", 1)
+			if resident_activity[index] != activity:
+				total_bus_trips += 1
+				if transport != null and transport.has_method("register_commuters"):
+					transport.call("register_commuters", 1)
 			return [Vector3(-30, 0, -8), Vector3(30, 0, -8), Vector3(30, 0, 8), Vector3(-30, 0, 8)][index % 4]
 		"В магазине":
-			total_shop_visits += 1
-			resident_visits[index] += 1
-			_spend_at_business(index)
+			if resident_activity[index] != activity:
+				total_shop_visits += 1
+				resident_visits[index] += 1
+				_spend_at_business(index)
 			return _get_business_destination(index)
 		_:
-			total_work_shifts += 1
+			if resident_activity[index] != activity:
+				total_work_shifts += 1
 			return _get_business_destination(index)
 
 func _get_business_destination(index: int) -> Vector3:
