@@ -171,7 +171,7 @@ func _on_city_tick() -> void:
 func _refresh_hud() -> void:
 	if population_label == null:
 		return
-	population_label.text = "Жители: %d • Счастье: %d%%\nОбщий бонус спроса: +%d\nМагазины: %d • Кафе: %d • Рестораны: %d\n😊 Довольны: %d • 😟 Недовольны: %d" % [population, happiness, get_demand_bonus(), get_business_demand("Магазин"), get_business_demand("Кафе"), get_business_demand("Ресторан"), happy_customer_count, disappointed_customer_count]
+	population_label.text = "Жители: %d • Счастье: %d%% • Лояльность: %d%%\nСобытие: %s (x%.2f)\nСпрос +%d • Магазины %d • Кафе %d • Рестораны %d\n😊 Довольны: %d • 😟 Недовольны: %d" % [population, happiness, city_loyalty, city_event_name, city_event_multiplier, get_demand_bonus(), get_business_demand("Магазин"), get_business_demand("Кафе"), get_business_demand("Ресторан"), happy_customer_count, disappointed_customer_count]
 
 func _spawn_resident_group() -> void:
 	for resident in visible_residents:
