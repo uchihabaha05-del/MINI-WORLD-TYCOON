@@ -509,7 +509,8 @@ func _refresh_ui() -> void:
 		if not business_type.is_empty() and BUILDINGS.has(business_type):
 			business_count += 1
 			business_income += _get_building_cycle_income(business_plot)
-	business_summary_label.text = "Зданий: %d  •  Прогноз дохода: %d монет / 10 сек." % [business_count, business_income]
+			business_income -= _get_building_maintenance(business_plot)
+	business_summary_label.text = "Зданий: %d  •  Чистый прогноз: %d монет / 10 сек." % [business_count, business_income]
 	_update_city_progress(business_count)
 	cash_label.text = "💰  Мои монетки: %d" % cash
 	_update_mission()
