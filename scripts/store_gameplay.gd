@@ -435,7 +435,7 @@ func _refresh_shop_ui() -> void:
 	for i in range(stock_labels.size()):
 		stock_labels[i].text = "%s: %d шт." % [PRODUCTS[i]["name"], stock[i]]
 	var demand := int(city_life.call("get_business_demand", "Магазин")) if city_life and city_life.has_method("get_business_demand") else 55
-	sales_label.text = "Продажи: %d  •  Прибыль: %d\\nСпрос на магазин: %d/100" % [total_sales, total_profit, demand]
+	sales_label.text = "Продажи: %d  •  Прибыль: %d\nСпрос на магазин: %d/100" % [total_sales, total_profit, demand]
 	if employee_hired:
 		employee_label.text = "Сотрудник нанят • зарплата %d / 10 сек. • пополнено: %d" % [EMPLOYEE_SALARY, auto_restocked_total]
 		hire_button.text = "Сотрудник работает"
