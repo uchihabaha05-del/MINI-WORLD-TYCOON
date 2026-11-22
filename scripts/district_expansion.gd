@@ -2,7 +2,6 @@ extends Node3D
 
 # MINI WORLD TYCOON — District expansion: four unlockable economic neighbourhoods.
 const SAVE_PATH := "user://district_expansion.cfg"
-const TICK_SECONDS := 10.0
 const DISTRICTS: Array[Dictionary] = [
 	{"name": "Жилой квартал", "kind": "residential", "cost": 1600, "income": 35, "population": 36, "demand": 2, "position": Vector3(0, 0, 78), "color": Color("#8daecb"), "accent": Color("#e9c58e"), "description": "Новые дома, семьи и постоянные покупатели"},
 	{"name": "Торговый центр", "kind": "commercial", "cost": 2200, "income": 50, "population": 8, "demand": 3, "position": Vector3(78, 0, 0), "color": Color("#d59b62"), "accent": Color("#f0d58d"), "description": "Магазины, витрины и поток покупателей"},
@@ -22,7 +21,6 @@ var event_multiplier := 1.0
 var event_name := "Обычный день"
 var summary_label: Label
 var status_label: Label
-var income_timer: Timer
 
 func _ready() -> void:
 	manager = get_parent().get_node_or_null("TycoonManager")
@@ -31,11 +29,6 @@ func _ready() -> void:
 	_create_hud()
 	_refresh_hud()
 	_start_district_events()
-	income_timer = Timer.new()
-	income_timer.wait_time = TICK_SECONDS
-	income_timer.autostart = true
-	income_timer.timeout.connect(_collect_district_income)
-	add_child(income_timer)
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -228,19 +221,6 @@ func _unlock_district(index: int) -> void:
 		manager.call("_refresh_ui")
 	var data: Dictionary = DISTRICTS[index]
 	status_label.text = "Открыт район «%s»! Теперь он приносит %d монет каждые 10 секунд." % [data["name"], data["income"]]
-	_refresh_hud()
-
-func _collect_district_income() -> void:
-	if manager == null:
-		return
-	var income := get_income_bonus()
-	if income <= 0:
-		return
-	manager.set("cash", int(manager.get("cash")) + income)
-	if manager.has_method("_save_game"):
-		manager.call("_save_game")
-	if manager.has_method("_refresh_ui"):
-		manager.call("_refresh_ui")
 	_refresh_hud()
 
 func get_income_bonus() -> int:
