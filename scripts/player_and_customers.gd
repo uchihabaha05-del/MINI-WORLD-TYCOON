@@ -517,7 +517,7 @@ func _spawn_customer() -> void:
 	customer_count += 1
 	active_customers += 1
 	if customer_label:
-		customer_label.text = "Сейчас в городе: %d / %d\\nВсего посетило: %d" % [active_customers, _get_customer_capacity(), customer_count]
+		customer_label.text = "Сейчас в городе: %d / %d\nВсего посетило: %d" % [active_customers, _get_customer_capacity(), customer_count]
 	var customer := Node3D.new()
 	customer.name = "Customer_%d" % customer_count
 	var spawn_position := Vector3(-15.0 + float((customer_count % 3) - 1) * 2.5, 0.0, 2.0)
