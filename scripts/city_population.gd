@@ -63,7 +63,7 @@ func _create_hud() -> void:
 	add_child(layer)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(650, 198)
-	panel.custom_minimum_size = Vector2(290, 58)
+	panel.custom_minimum_size = Vector2(290, 88)
 	layer.add_child(panel)
 	population_label = Label.new()
 	population_label.add_theme_font_size_override("font_size", 17)
@@ -87,7 +87,7 @@ func _on_city_tick() -> void:
 	_spawn_resident_group()
 
 func _refresh_hud() -> void:
-	population_label.text = "Жители: %d   •   Счастье: %d%%\nСпрос города: +%d монет к продаже" % [population, happiness, get_demand_bonus()]
+	population_label.text = "Жители: %d • Счастье: %d%%\nСпрос: +%d монет\n😊 Довольны: %d • 😟 Недовольны: %d" % [population, happiness, get_demand_bonus(), happy_customer_count, disappointed_customer_count]
 
 func _spawn_resident_group() -> void:
 	for resident in visible_residents:
