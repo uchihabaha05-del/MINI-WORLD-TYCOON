@@ -205,11 +205,10 @@ func _complete_shipment(order: Dictionary, van: Node3D) -> void:
 func _apply_destination_trade_effect(district_id: int) -> void:
 	if market == null or district_id < 0 or district_id >= 3:
 		return
-	var demand: Array = market.get("district_demand")
+	var demand: Array[float] = market.get("district_demand")
 	if demand.size() != 3:
 		return
-	demand[district_id] = minf(1.4, float(demand[district_id]) + 0.035)
-	market.set("district_demand", demand)
+	demand[district_id] = minf(1.4, demand[district_id] + 0.035)
 	if market.has_method("_save_state"):
 		market.call("_save_state")
 	if market.has_method("_refresh_ui"):
