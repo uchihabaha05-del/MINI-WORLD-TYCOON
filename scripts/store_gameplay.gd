@@ -247,7 +247,9 @@ func _complete_delivery(product_id: int, truck: Node3D) -> void:
 		if shelf:
 			_update_shelf_products(shelf, product_id)
 		_save_shop_state()
-		manager.call("_save_game") if manager != null else null
+		if manager != null:
+			manager.call("_save_game")
+			manager.call("_refresh_ui")
 		_refresh_shop_ui()
 		delivery_label.text = "Доставлено: %s (+%d шт.)" % [PRODUCTS[product_id]["name"], DELIVERY_AMOUNT]
 	if is_instance_valid(truck):
