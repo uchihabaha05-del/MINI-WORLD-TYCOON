@@ -61,6 +61,7 @@ func get_demand_bonus() -> int:
 func get_business_demand(business_type: String) -> int:
 	var demand := 55 + int(maxi(0, population - BASE_POPULATION) / 8.0)
 	demand += int(round(float(happiness - 70) * 0.35))
+	demand += int(round(float(city_loyalty - 65) * 0.15))
 	match business_type:
 		"Кафе":
 			if population >= 60:
