@@ -26,12 +26,30 @@ var event_end_timer: Timer
 
 func _ready() -> void:
 	rng.randomize()
+	_load_city_state()
 	manager = get_parent().get_node_or_null("TycoonManager")
 	_create_hud()
 	_recalculate_population()
 	_spawn_resident_group()
 	_start_life_timer()
 	_start_city_events()
+
+func _load_city_state() -> void:
+	var config := ConfigFile.new()
+	if config.load("user://city_life.cfg") != OK:
+		return
+	happiness = clampi(int(config.get_value("city", "happiness", 70)), 35, 100)
+	city_loyalty = clampi(int(config.get_value("city", "loyalty", 65)), 20, 100)
+	happy_customer_count = maxi(0, int(config.get_value("city", "happy_customers", 0)))
+	disappointed_customer_count = maxi(0, int(config.get_value("city", "disappointed_customers", 0)))
+
+func _save_city_state() -> void:
+	var config := ConfigFile.new()
+	config.set_value("city", "happiness", happiness)
+	config.set_value("city", "loyalty", city_loyalty)
+	config.set_value("city", "happy_customers", happy_customer_count)
+	config.set_value("city", "disappointed_customers", disappointed_customer_count)
+	config.save("user://city_life.cfg")
 
 func get_population() -> int:
 	return population
@@ -97,6 +115,7 @@ func record_customer_result(success: bool) -> void:
 		disappointed_customer_count += 1
 		happiness = maxi(35, happiness - 3)
 		city_loyalty = maxi(20, city_loyalty - 2)
+	_save_city_state()
 	_refresh_hud()
 
 
@@ -145,6 +164,7 @@ func _trigger_city_event() -> void:
 	city_event_multiplier = float(event["multiplier"])
 	happiness = mini(100, happiness + int(event["happiness"]))
 	event_end_timer.start(35.0)
+	_save_city_state()
 	_refresh_hud()
 
 func _finish_city_event() -> void:
@@ -166,6 +186,7 @@ func _on_city_tick() -> void:
 		happiness = mini(100, happiness + 1)
 	else:
 		happiness = maxi(45 + civic_happiness_bonus, happiness - 1)
+	_save_city_state()
 	_refresh_hud()
 	_spawn_resident_group()
 
